@@ -53,7 +53,7 @@ export function Navigation() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div style={{ display: "none" }} className="desktop-nav">
+        <div style={{ display: "none", marginRight: "-5rem" }} className="desktop-nav">
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
             <Link
               href="/trips"
