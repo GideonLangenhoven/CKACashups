@@ -148,11 +148,17 @@ export async function GET(req: NextRequest) {
 
   const docDefinition = {
     content,
+    pageSize: 'A4',
+    pageMargins: [40, 60, 40, 60],
     styles: {
-      header: { fontSize: 18, bold: true, margin: [0, 0, 0, 5] },
-      subheader: { fontSize: 12, margin: [0, 0, 0, 5] },
-      sectionHeader: { fontSize: 14, bold: true },
-      guideName: { fontSize: 12, bold: true }
+      header: { fontSize: 20, bold: true, margin: [0, 0, 0, 5], color: '#0A66C2' },
+      subheader: { fontSize: 11, margin: [0, 0, 0, 5], color: '#64748b' },
+      sectionHeader: { fontSize: 14, bold: true, color: '#334155', margin: [0, 10, 0, 8] },
+      guideName: { fontSize: 11, bold: true, color: '#475569' }
+    },
+    defaultStyle: {
+      fontSize: 10,
+      color: '#1e293b'
     }
   };
 
