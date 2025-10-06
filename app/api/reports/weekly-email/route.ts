@@ -1,12 +1,8 @@
-import { prisma } from "@/lib/prisma";
-import { sendEmail } from "@/lib/sendMail";
 import { NextRequest } from "next/server";
-import { logEvent } from "@/lib/log";
-import fs from 'fs';
-import path from 'path';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 function parseWeek(week: string) {
   const match = week.match(/^(\d{4})-W(\d{2})$/);
@@ -43,6 +39,13 @@ function getCurrentWeek(): string {
 
 export async function GET(req: NextRequest) {
   try {
+    // Dynamic imports to avoid build-time bundling issues
+    const { prisma } = await import("@/lib/prisma");
+    const { sendEmail } = await import("@/lib/sendMail");
+    const { logEvent } = await import("@/lib/log");
+    const fs = await import('fs');
+    const path = await import('path');
+
     const { searchParams } = new URL(req.url);
     const week = searchParams.get('week') || getCurrentWeek();
     const { start, end } = parseWeek(week);
