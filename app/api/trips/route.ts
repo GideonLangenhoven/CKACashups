@@ -46,38 +46,46 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await getServerSession();
-  if (!user?.id) return new Response('Unauthorized', { status: 401 });
-  const body = await req.json();
-  const { tripDate, leadName, paxGuideNote, totalPax, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
-  if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
+  try {
+    const user = await getServerSession();
+    if (!user?.id) return new Response('Unauthorized', { status: 401 });
+    const body = await req.json();
+    const { tripDate, leadName, paxGuideNote, totalPax, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
+    if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
 
-  const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
-  const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
+    const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
+    const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
 
-  const trip = await prisma.trip.create({
-    data: {
-      tripDate: new Date(tripDate),
-      leadName,
-      paxGuideNote,
-      totalPax,
-      paymentsMadeYN: !!paymentsMadeYN,
-      picsUploadedYN: !!picsUploadedYN,
-      tripEmailSentYN: !!tripEmailSentYN,
-      tripReport,
-      suggestions,
-      status: status || 'DRAFT',
-      createdById: user.id,
-      payments: payments ? { create: payments } : undefined,
-      discounts: discounts && discounts.length ? { create: discounts.map((d: any) => ({ amount: d.amount, reason: d.reason })) } : undefined,
-      guides: guides && guides.length ? { create: guides.map((g: any) => {
-        const guide = dbGuides.find((x: any) => x.id === g.guideId);
-        const paxCount = g.pax || 0;
-        const feeAmount = 0; // Fee rates removed
-        return { guideId: g.guideId, paxCount, feeAmount };
-      }) } : undefined,
-    }
-  });
-  logEvent('trip_created', { tripId: trip.id, userId: user.id, leadName });
-  return Response.json({ trip });
+    const trip = await prisma.trip.create({
+      data: {
+        tripDate: new Date(tripDate),
+        leadName,
+        paxGuideNote,
+        totalPax,
+        paymentsMadeYN: !!paymentsMadeYN,
+        picsUploadedYN: !!picsUploadedYN,
+        tripEmailSentYN: !!tripEmailSentYN,
+        tripReport,
+        suggestions,
+        status: status || 'DRAFT',
+        createdById: user.id,
+        payments: payments ? { create: payments } : undefined,
+        discounts: discounts && discounts.length ? { create: discounts.map((d: any) => ({ amount: d.amount, reason: d.reason })) } : undefined,
+        guides: guides && guides.length ? { create: guides.map((g: any) => {
+          const guide = dbGuides.find((x: any) => x.id === g.guideId);
+          const paxCount = g.pax || 0;
+          const feeAmount = 0; // Fee rates removed
+          return { guideId: g.guideId, paxCount, feeAmount };
+        }) } : undefined,
+      }
+    });
+    logEvent('trip_created', { tripId: trip.id, userId: user.id, leadName });
+    return Response.json({ trip });
+  } catch (error: any) {
+    console.error('Error creating trip:', error);
+    return new Response(JSON.stringify({ error: error.message, details: error.toString() }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

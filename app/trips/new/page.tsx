@@ -127,8 +127,17 @@ export default function NewTripPage() {
       localStorage.removeItem('cashup-draft');
       window.location.href = '/trips';
     } else {
-      const t = await res.text();
-      alert('Failed to save: ' + t);
+      const contentType = res.headers.get('content-type');
+      let errorMessage = 'Failed to save';
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await res.json();
+        errorMessage = `Failed to save: ${errorData.error}\n\nDetails: ${errorData.details}`;
+      } else {
+        const t = await res.text();
+        errorMessage = 'Failed to save: ' + t;
+      }
+      alert(errorMessage);
+      console.error('Save error:', errorMessage);
     }
   }
 
