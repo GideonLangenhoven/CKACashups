@@ -10,15 +10,20 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
   const smtpPass = process.env.SMTP_PASS;
 
   if (smtpHost && smtpPort && smtpUser && smtpPass) {
-    // Use Gmail SMTP
+    // Use SMTP (Gmail or other)
+    const port = parseInt(smtpPort);
     const transporter = nodemailer.createTransport({
       host: smtpHost,
-      port: parseInt(smtpPort),
-      secure: false, // Use TLS
+      port: port,
+      secure: port === 465, // true for 465, false for other ports (use STARTTLS)
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
+      tls: {
+        // Don't fail on invalid certs in development
+        rejectUnauthorized: true
+      }
     });
 
     const mailOptions = {
