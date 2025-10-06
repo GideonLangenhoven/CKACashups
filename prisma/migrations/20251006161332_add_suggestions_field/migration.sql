@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "Trip" ADD COLUMN "suggestions" TEXT;
+ALTER TABLE "Trip" ADD COLUMN IF NOT EXISTS "suggestions" TEXT;
