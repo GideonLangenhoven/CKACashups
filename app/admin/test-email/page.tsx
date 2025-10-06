@@ -58,10 +58,6 @@ export default function TestEmailPage() {
       <h2>Reports</h2>
       <div className="card">
         <div className="stack">
-          <p style={{ color: '#666', marginBottom: '1rem' }}>
-            Test the email reporting system. Emails will be sent to: {process.env.NEXT_PUBLIC_ADMIN_EMAILS || 'ADMIN_EMAILS from env'}
-          </p>
-
           <div className="section-title">Weekly Report</div>
           <p style={{ fontSize: '0.9rem', color: '#666' }}>
             Contains:<br/>
