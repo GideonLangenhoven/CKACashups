@@ -58,8 +58,15 @@ export default function NewTripPage() {
   // Mount and local draft persistence
   useEffect(() => {
     setMounted(true);
+    // Check if we just came from a successful submission
+    const justSubmitted = sessionStorage.getItem('trip-just-submitted');
+    if (justSubmitted) {
+      sessionStorage.removeItem('trip-just-submitted');
+      localStorage.removeItem('cashup-draft');
+    }
+
     const draft = localStorage.getItem('cashup-draft');
-    if (draft) {
+    if (draft && !justSubmitted) {
       try {
         const d = JSON.parse(draft);
         setTripDate(d.tripDate || todayLocalISODate());
@@ -98,6 +105,12 @@ export default function NewTripPage() {
     });
   }
 
+  function clearForm() {
+    if (!confirm('Are you sure you want to clear the form? This will delete your draft.')) return;
+    localStorage.removeItem('cashup-draft');
+    window.location.reload();
+  }
+
   async function submit(status: "DRAFT"|"SUBMITTED") {
     const payload = {
       tripDate,
@@ -125,6 +138,7 @@ export default function NewTripPage() {
     const res = await fetch('/api/trips', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
       localStorage.removeItem('cashup-draft');
+      sessionStorage.setItem('trip-just-submitted', 'true');
       window.location.href = '/trips';
     } else {
       const contentType = res.headers.get('content-type');
@@ -147,7 +161,10 @@ export default function NewTripPage() {
 
   return (
     <div className="card" style={{ maxWidth: 900, margin: "0 auto" }}>
-      <h2>Create Cash Up</h2>
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2>Create Cash Up</h2>
+        <button className="btn ghost" onClick={clearForm} style={{ fontSize: '0.85rem' }}>Clear Form</button>
+      </div>
       <div className="row" style={{ marginBottom: 12, gap: 8 }}>
         <button className={`btn ${step===1?"":"ghost"}`} onClick={() => setStep(1)}>1. Trip</button>
         <button className={`btn ${step===2?"":"ghost"}`} onClick={() => setStep(2)}>2. Guides & Pax</button>

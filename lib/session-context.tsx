@@ -30,6 +30,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     try {
       await fetch("/api/auth/signout", { method: "POST" });
+      // Clear any cached form data from localStorage
+      localStorage.removeItem('cashup-draft');
       setUser(null);
       window.location.href = "/auth/signin";
     } catch (error) {
