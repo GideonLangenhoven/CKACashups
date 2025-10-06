@@ -37,7 +37,7 @@ export default async function TripDetail({ params }: { params: { id: string }}) 
       )}
       <div className="card">
         <div className="section-title">Guides</div>
-        {trip.guides.map(g => (<div key={g.id}>{g.guide.name} ({g.guide.rank}) — pax {g.paxCount}</div>))}
+        {trip.guides.map((g: any) => (<div key={g.id}>{g.guide.name} ({g.guide.rank}) — pax {g.paxCount}</div>))}
       </div>
       <div className="card">
         <div className="section-title">Payments</div>
@@ -53,7 +53,7 @@ export default async function TripDetail({ params }: { params: { id: string }}) 
           </div>
         )}
         <div className="section-title">Discount lines</div>
-        {trip.discounts.map(d => (<div key={d.id}>R {d.amount.toString()} — {d.reason}</div>))}
+        {trip.discounts.map((d: any) => (<div key={d.id}>R {d.amount.toString()} — {d.reason}</div>))}
       </div>
     </div>
   );

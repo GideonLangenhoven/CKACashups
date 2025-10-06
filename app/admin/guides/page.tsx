@@ -7,14 +7,15 @@ const fetcher = (url: string) => fetch(url).then(r=>r.json());
 export default function GuidesPage() {
   const { data, mutate } = useSWR('/api/guides', fetcher);
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [rank, setRank] = useState("SENIOR");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRank, setEditRank] = useState("");
   const guides = data?.guides || [];
 
   async function addGuide() {
-    const res = await fetch('/api/guides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rank }) });
-    if (res.ok) { setName(""); mutate(); } else { alert(await res.text()); }
+    const res = await fetch('/api/guides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rank, email: email || undefined }) });
+    if (res.ok) { setName(""); setEmail(""); mutate(); } else { alert(await res.text()); }
   }
 
   async function deactivate(id: string) {
@@ -50,14 +51,20 @@ export default function GuidesPage() {
     <div className="stack">
       <h2>Guides</h2>
       <div className="card">
-        <div className="row">
-          <input className="input" placeholder="Guide name" value={name} onChange={e=>setName(e.target.value)} />
-          <select className="input" value={rank} onChange={e=>setRank(e.target.value)}>
-            <option value="SENIOR">Senior</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="JUNIOR">Junior</option>
-          </select>
-          <button className="btn" onClick={addGuide}>Add</button>
+        <div className="stack">
+          <div className="row">
+            <input className="input" placeholder="Guide name *" value={name} onChange={e=>setName(e.target.value)} />
+            <input className="input" type="email" placeholder="Email (optional)" value={email} onChange={e=>setEmail(e.target.value)} />
+            <select className="input" value={rank} onChange={e=>setRank(e.target.value)}>
+              <option value="SENIOR">Senior</option>
+              <option value="INTERMEDIATE">Intermediate</option>
+              <option value="JUNIOR">Junior</option>
+            </select>
+            <button className="btn" onClick={addGuide} disabled={!name}>Add</button>
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#666' }}>
+            💡 Adding an email will auto-create a user account for this guide
+          </div>
         </div>
       </div>
       <div className="card">

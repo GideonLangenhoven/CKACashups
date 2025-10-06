@@ -19,9 +19,9 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
   const fonts = { Roboto: { normal: "Helvetica", bold: "Helvetica-Bold" } } as any;
   const printer = new (PdfPrinter as any)(fonts);
 
-  const guideLines = trip.guides.map((g) => `${g.guide.name} (${g.guide.rank}) — pax ${g.paxCount}`);
+  const guideLines = trip.guides.map((g: any) => `${g.guide.name} (${g.guide.rank}) — pax ${g.paxCount}`);
   const discountLines = trip.discounts.length
-    ? trip.discounts.map((d) => `R ${d.amount.toString()} — ${d.reason}`)
+    ? trip.discounts.map((d: any) => `R ${d.amount.toString()} — ${d.reason}`)
     : ["None"];
 
   const payments = trip.payments;

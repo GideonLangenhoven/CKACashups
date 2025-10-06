@@ -48,13 +48,45 @@ export async function createUserSession(email: string, name?: string): Promise<S
     .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
   const isAdmin = adminEmails.includes(normalizedEmail);
 
+  // Try to find matching guide by name or email
+  let matchingGuide = null;
+  if (normalizedName) {
+    // Try exact name match first
+    matchingGuide = await prisma.guide.findFirst({
+      where: {
+        OR: [
+          { name: { equals: normalizedName, mode: 'insensitive' } },
+          { email: normalizedEmail }
+        ],
+        active: true
+      }
+    });
+  }
+
+  // If guide found, update their email if not set
+  if (matchingGuide && !matchingGuide.email) {
+    await prisma.guide.update({
+      where: { id: matchingGuide.id },
+      data: { email: normalizedEmail }
+    });
+  }
+
   // Allow anyone to sign in - create user if they don't exist
   const isNewUser = !user;
   const finalName = normalizedName || normalizedEmail.split('@')[0];
   user = await prisma.user.upsert({
     where: { email: normalizedEmail },
-    create: { email: normalizedEmail, name: finalName, role: isAdmin ? 'ADMIN' : 'USER' },
-    update: { role: isAdmin ? 'ADMIN' : undefined, active: true }
+    create: {
+      email: normalizedEmail,
+      name: finalName,
+      role: isAdmin ? 'ADMIN' : 'USER',
+      guideId: matchingGuide?.id
+    },
+    update: {
+      role: isAdmin ? 'ADMIN' : undefined,
+      active: true,
+      guideId: matchingGuide?.id || undefined
+    }
   });
 
   // Log account creation for new users
@@ -64,7 +96,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
         entityType: "User",
         entityId: user.id,
         action: "ACCOUNT_CREATED",
-        afterJSON: { email: user.email, name: user.name, role: user.role, createdBy: isAdmin ? "ADMIN_EMAIL_LIST" : "OPEN_SIGNUP" },
+        afterJSON: { email: user.email, name: user.name, role: user.role, guideId: user.guideId, createdBy: isAdmin ? "ADMIN_EMAIL_LIST" : "OPEN_SIGNUP" },
         actorUserId: user.id,
       }
     });

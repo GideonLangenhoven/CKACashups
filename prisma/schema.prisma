@@ -18,6 +18,8 @@ model User {
   trips     Trip[]   @relation("UserTrips")
   auditLogs AuditLog[]
   invites   Invite[]
+  guideId   String?  @unique
+  guide     Guide?   @relation(fields: [guideId], references: [id])
 }
 
 enum Role {
@@ -44,11 +46,13 @@ enum InviteStatus {
 model Guide {
   id        String   @id @default(cuid())
   name      String
+  email     String?  @unique
   rank      GuideRank
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   tripGuides TripGuide[]
+  user      User?
 }
 
 enum GuideRank {

@@ -176,7 +176,7 @@ export default function NewTripPage() {
                     </div>
                     <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
                       {guidesInRank.map(g => (
-                        <button key={g.id} className={"btn " + (selectedGuides.includes(g.id)?"":"ghost")} onClick={()=>toggleGuide(g.id)}>
+                        <button key={g.id} className={"btn guide-button " + (selectedGuides.includes(g.id)?"":"ghost")} onClick={()=>toggleGuide(g.id)}>
                           {g.name}
                         </button>
                       ))}
@@ -211,32 +211,32 @@ export default function NewTripPage() {
       {step === 3 && (
         <div className="stack">
           <div className="section-title">Payments</div>
-          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div style={{ width: '35%' }}>
+          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Cash received (R)</label>
               <input className="input" inputMode="decimal" value={cashReceived} onChange={e=>setCashReceived(e.target.value)} />
             </div>
-            <div style={{ width: '35%' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Credit cards (R)</label>
               <input className="input" inputMode="decimal" value={creditCards} onChange={e=>setCreditCards(e.target.value)} />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div style={{ width: '35%' }}>
+          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Online EFTs (R)</label>
               <input className="input" inputMode="decimal" value={onlineEFTs} onChange={e=>setOnlineEFTs(e.target.value)} />
             </div>
-            <div style={{ width: '35%' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Vouchers (R)</label>
               <input className="input" inputMode="decimal" value={vouchers} onChange={e=>setVouchers(e.target.value)} />
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div style={{ width: '35%' }}>
+          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Members (R)</label>
               <input className="input" inputMode="decimal" value={members} onChange={e=>setMembers(e.target.value)} />
             </div>
-            <div style={{ width: '35%' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Agents to invoice (R)</label>
               <input className="input" inputMode="decimal" value={agentsToInvoice} onChange={e=>setAgentsToInvoice(e.target.value)} />
             </div>

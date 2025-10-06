@@ -87,9 +87,9 @@ export async function GET(req: NextRequest) {
   ]];
   for (const t of trips) {
     const counts = {
-      SENIOR: t.guides.filter(g=>g.guide.rank==='SENIOR').length,
-      INTERMEDIATE: t.guides.filter(g=>g.guide.rank==='INTERMEDIATE').length,
-      JUNIOR: t.guides.filter(g=>g.guide.rank==='JUNIOR').length,
+      SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
+      INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
+      JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
     };
     body.push([
       new Date(t.tripDate).toISOString().slice(0,10),

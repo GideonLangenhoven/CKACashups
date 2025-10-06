@@ -17,7 +17,7 @@ export default async function TripsListPage() {
         <h2>My Trips</h2>
         <Link className="btn" href="/trips/new">New Cash Up</Link>
       </div>
-      {trips.map(t => (
+      {trips.map((t: any) => (
         <div className="card" key={t.id}>
           <div className="row" style={{ justifyContent:'space-between' }}>
             <div>
