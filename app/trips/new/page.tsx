@@ -270,10 +270,10 @@ export default function NewTripPage() {
           />
 
           <div className="section-title">Suggestions</div>
-          <label className="label">Any suggestions or feedback for the app?</label>
+          <label className="label">Suggestions</label>
           <textarea
             className="input"
-            placeholder="Share your ideas for improving the app..."
+            placeholder="Share your suggestions..."
             value={suggestions}
             onChange={e=>setSuggestions(e.target.value)}
             rows={4}

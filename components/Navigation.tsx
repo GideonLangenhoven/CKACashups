@@ -49,7 +49,7 @@ export function Navigation() {
         {/* Logo */}
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", color: "#333" }}>
           <img src="/CKAlogo.png" alt="CKA Logo" style={{ height: "32px", width: "auto" }} />
-          <span style={{ fontWeight: "bold", fontSize: "1rem" }}>CKA Cashups</span>
+          <span style={{ fontWeight: "bold", fontSize: "1rem" }}>Cashups</span>
         </Link>
 
         {/* Desktop Navigation */}
