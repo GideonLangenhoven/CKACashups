@@ -5,6 +5,9 @@ import { logEvent } from "@/lib/log";
 import fs from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 function parseWeek(week: string) {
   const match = week.match(/^(\d{4})-W(\d{2})$/);
   if (!match) throw new Error('Invalid week format. Use YYYY-Wnn');

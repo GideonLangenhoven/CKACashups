@@ -5,6 +5,9 @@ import { logEvent } from "@/lib/log";
 import fs from 'fs';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 function parseMonth(month: string) {
   const [y, m] = month.split('-').map(n=>parseInt(n));
   if (!y || !m) throw new Error('Invalid month');
