@@ -11,7 +11,6 @@ export default async function AdminHome() {
         <Link className="btn" href="/admin/guides">Manage Guides</Link>
         <Link className="btn" href="/admin/reports">Reports</Link>
         <Link className="btn" href="/admin/trips">All Trips</Link>
-        <Link className="btn" href="/admin/test-email">Email Reports</Link>
         <a className="btn ghost" href="/api/audit-logs">Download Audit Logs</a>
       </div>
     </div>
