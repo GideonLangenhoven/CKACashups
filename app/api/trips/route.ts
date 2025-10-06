@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   const user = await getServerSession();
   if (!user?.id) return new Response('Unauthorized', { status: 401 });
   const body = await req.json();
-  const { tripDate, leadName, paxGuideNote, totalPax, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, status, guides, payments, discounts } = body;
+  const { tripDate, leadName, paxGuideNote, totalPax, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
   if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
 
   const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
@@ -65,6 +65,7 @@ export async function POST(req: NextRequest) {
       picsUploadedYN: !!picsUploadedYN,
       tripEmailSentYN: !!tripEmailSentYN,
       tripReport,
+      suggestions,
       status: status || 'DRAFT',
       createdById: user.id,
       payments: payments ? { create: payments } : undefined,
