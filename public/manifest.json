@@ -1,0 +1,13 @@
+{
+  "name": "CKA Cash Ups",
+  "short_name": "CashUps",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A66C2",
+  "theme_color": "#0A66C2",
+  "icons": [
+    { "src": "/CKAlogo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/CKAlogo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+
