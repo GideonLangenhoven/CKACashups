@@ -163,7 +163,7 @@ export default function NewTripPage() {
     <div className="card" style={{ maxWidth: 900, margin: "0 auto" }}>
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Create Cash Up</h2>
-        <button className="btn ghost" onClick={clearForm} style={{ fontSize: '0.85rem' }}>Clear Form</button>
+        <button className="btn ghost" onClick={clearForm} style={{ fontSize: '1.5rem', padding: '0.4rem 0.8rem' }} title="Clear form and start fresh">↻</button>
       </div>
       <div className="row" style={{ marginBottom: 12, gap: 8 }}>
         <button className={`btn ${step===1?"":"ghost"}`} onClick={() => setStep(1)}>1. Trip</button>
