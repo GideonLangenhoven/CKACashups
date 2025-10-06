@@ -23,7 +23,7 @@ export default async function TripsListPage() {
             <div>
               <div><strong>{new Date(t.tripDate).toLocaleDateString()}</strong> — {t.leadName}</div>
               <div>Status: {t.status}</div>
-              <div>Pax: {t.totalPax} | Guides: {t.guides.map(g=>g.guide.name).join(', ')}</div>
+              <div>Pax: {t.totalPax} | Guides: {t.guides.map((g: any)=>g.guide.name).join(', ')}</div>
             </div>
             <div className="row" style={{ gap: 8 }}>
               <Link className="btn ghost" href={`/trips/${t.id}`}>View</Link>

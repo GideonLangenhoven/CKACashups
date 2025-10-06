@@ -57,9 +57,9 @@ export async function GET(req: NextRequest) {
   const body: any[] = [[{ text: 'Date', bold: true }, { text: 'Lead', bold: true }, { text: 'Pax', bold: true }, { text: 'S/I/J', bold: true }, { text: 'Cash', bold: true }, { text: 'Cards', bold: true }, { text: 'EFTs', bold: true }, { text: 'Vouchers', bold: true }, { text: 'Members', bold: true }, { text: 'Agents', bold: true }, { text: 'Discounts', bold: true }]];
   for (const t of trips) {
     const counts = {
-      SENIOR: t.guides.filter(g=>g.guide.rank==='SENIOR').length,
-      INTERMEDIATE: t.guides.filter(g=>g.guide.rank==='INTERMEDIATE').length,
-      JUNIOR: t.guides.filter(g=>g.guide.rank==='JUNIOR').length,
+      SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
+      INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
+      JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
     };
     body.push([
       new Date(t.tripDate).toISOString().slice(0,10), t.leadName, t.totalPax,
@@ -105,8 +105,8 @@ export async function GET(req: NextRequest) {
     { header: 'Discounts', key: 'discounts', width: 12 }
   ];
   for (const t of trips) {
-    const names = t.guides.map(g=>g.guide.name).join(', ');
-    const counts = { SENIOR: t.guides.filter(g=>g.guide.rank==='SENIOR').length, INTERMEDIATE: t.guides.filter(g=>g.guide.rank==='INTERMEDIATE').length, JUNIOR: t.guides.filter(g=>g.guide.rank==='JUNIOR').length };
+    const names = t.guides.map((g: any)=>g.guide.name).join(', ');
+    const counts = { SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length, INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length, JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length };
     ws.addRow({ tripDate: new Date(t.tripDate).toISOString().slice(0,10), status: t.status, leadName: t.leadName, totalPax: t.totalPax, guideCounts: `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`, guideNames: names, cash: t.payments?.cashReceived?.toString() || '0', cards: t.payments?.creditCards?.toString() || '0', efts: t.payments?.onlineEFTs?.toString() || '0', vouchers: t.payments?.vouchers?.toString() || '0', members: t.payments?.members?.toString() || '0', agents: t.payments?.agentsToInvoice?.toString() || '0', discounts: t.payments?.discountsTotal?.toString() || '0' });
   }
   const xlsBuf = await wb.xlsx.writeBuffer();

@@ -51,11 +51,11 @@ export async function GET(req: NextRequest) {
       { header: 'Created By', key: 'creator', width: 24 },
     ];
     for (const t of trips) {
-      const names = t.guides.map(g=>g.guide.name).join(', ');
+      const names = t.guides.map((g: any)=>g.guide.name).join(', ');
       const counts = {
-        SENIOR: t.guides.filter(g=>g.guide.rank==='SENIOR').length,
-        INTERMEDIATE: t.guides.filter(g=>g.guide.rank==='INTERMEDIATE').length,
-        JUNIOR: t.guides.filter(g=>g.guide.rank==='JUNIOR').length,
+        SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
+        INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
+        JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
       };
       ws.addRow({
         tripDate: new Date(t.tripDate).toISOString().slice(0,10),
