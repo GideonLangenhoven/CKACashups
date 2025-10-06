@@ -20,10 +20,15 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
         user: smtpUser,
         pass: smtpPass,
       },
+      dnsTimeout: 30000,
       tls: {
-        // Don't fail on invalid certs in development
-        rejectUnauthorized: true
-      }
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      // Add connection timeout
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000
     });
 
     const mailOptions = {
@@ -44,11 +49,17 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
 
   // Fallback to Resend if configured
   const resendKey = process.env.RESEND_API_KEY;
-  if (resendKey) {
+  if (resendKey && resendKey !== 're_123YourResendAPIKey') {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'reports@cashups.local', to, subject, html, attachments: (attachments || []).map(a => ({ filename: a.filename, content: a.content.toString('base64') })) })
+      body: JSON.stringify({
+        from: 'CKA Cashups <onboarding@resend.dev>', // Use Resend's default sender for testing
+        to,
+        subject,
+        html,
+        attachments: (attachments || []).map(a => ({ filename: a.filename, content: a.content.toString('base64') }))
+      })
     });
     if (!res.ok) throw new Error('Failed to send via Resend: ' + (await res.text()));
     return;
