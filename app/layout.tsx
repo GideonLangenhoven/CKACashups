@@ -3,8 +3,18 @@ import { ReactNode } from "react";
 import { ClientLayout } from "@/components/ClientLayout";
 
 export const metadata = {
-  title: "CSK Cash Ups",
-  description: "Cash ups tracking and reporting",
+  title: "CKA Cashups",
+  description: "Cash ups tracking and reporting for CKA guides",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "CKA Cashups",
+  },
+  icons: {
+    icon: "/CKAlogo.png",
+    apple: "/CKAlogo.png",
+  },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
