@@ -55,7 +55,7 @@ export default function TestEmailPage() {
 
   return (
     <div className="stack">
-      <h2>Test Email Reports</h2>
+      <h2>Reports</h2>
       <div className="card">
         <div className="stack">
           <p style={{ color: '#666', marginBottom: '1rem' }}>
@@ -108,21 +108,6 @@ export default function TestEmailPage() {
             </div>
           )}
         </div>
-      </div>
-
-      <div className="card" style={{ marginTop: '1rem' }}>
-        <div className="section-title">About Automated Sending</div>
-        <p style={{ fontSize: '0.9rem', color: '#666' }}>
-          To set up automatic weekly and monthly emails, you'll need to configure a cron job or use Vercel Cron Jobs.<br/><br/>
-
-          <strong>Recommended schedule:</strong><br/>
-          • Weekly: Every Monday at 8am<br/>
-          • Monthly: Last day of month at 8am<br/><br/>
-
-          These endpoints can be triggered:<br/>
-          • <code>GET /api/reports/weekly-email</code><br/>
-          • <code>GET /api/reports/monthly-email</code>
-        </p>
       </div>
     </div>
   );
