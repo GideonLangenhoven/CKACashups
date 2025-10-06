@@ -14,9 +14,10 @@ function parseMonth(month: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const month = searchParams.get('month') || new Date().toISOString().slice(0,7);
-  const { start, end } = parseMonth(month);
+  try {
+    const { searchParams } = new URL(req.url);
+    const month = searchParams.get('month') || new Date().toISOString().slice(0,7);
+    const { start, end } = parseMonth(month);
   const trips = await prisma.trip.findMany({
     where: { tripDate: { gte: start, lte: end } },
     orderBy: { tripDate: 'asc' },
@@ -124,6 +125,13 @@ export async function GET(req: NextRequest) {
     ]
   });
 
-  logEvent('report_monthly_email_sent', { month, recipientsCount: recipients.length });
-  return Response.json({ ok: true });
+    logEvent('report_monthly_email_sent', { month, recipientsCount: recipients.length });
+    return Response.json({ ok: true });
+  } catch (error: any) {
+    console.error('Monthly email error:', error);
+    return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

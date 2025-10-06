@@ -39,9 +39,10 @@ function getCurrentWeek(): string {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const week = searchParams.get('week') || getCurrentWeek();
-  const { start, end } = parseWeek(week);
+  try {
+    const { searchParams } = new URL(req.url);
+    const week = searchParams.get('week') || getCurrentWeek();
+    const { start, end } = parseWeek(week);
 
   const trips = await prisma.trip.findMany({
     where: { tripDate: { gte: start, lte: end } },
@@ -200,6 +201,13 @@ export async function GET(req: NextRequest) {
     ]
   });
 
-  logEvent('report_weekly_email_sent', { week, recipientsCount: recipients.length });
-  return Response.json({ ok: true });
+    logEvent('report_weekly_email_sent', { week, recipientsCount: recipients.length });
+    return Response.json({ ok: true });
+  } catch (error: any) {
+    console.error('Weekly email error:', error);
+    return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

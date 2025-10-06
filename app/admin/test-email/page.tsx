@@ -13,8 +13,14 @@ export default function TestEmailPage() {
       if (res.ok) {
         setResult('✓ Weekly report email sent successfully!');
       } else {
-        const text = await res.text();
-        setResult(`✗ Failed: ${text}`);
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await res.json();
+          setResult(`✗ Failed: ${errorData.error}\n\nStack: ${errorData.stack || 'N/A'}`);
+        } else {
+          const text = await res.text();
+          setResult(`✗ Failed: ${text}`);
+        }
       }
     } catch (error: any) {
       setResult(`✗ Error: ${error.message}`);
@@ -31,8 +37,14 @@ export default function TestEmailPage() {
       if (res.ok) {
         setResult('✓ Monthly report email sent successfully!');
       } else {
-        const text = await res.text();
-        setResult(`✗ Failed: ${text}`);
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await res.json();
+          setResult(`✗ Failed: ${errorData.error}\n\nStack: ${errorData.stack || 'N/A'}`);
+        } else {
+          const text = await res.text();
+          setResult(`✗ Failed: ${text}`);
+        }
       }
     } catch (error: any) {
       setResult(`✗ Error: ${error.message}`);
