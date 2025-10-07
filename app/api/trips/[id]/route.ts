@@ -50,7 +50,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
 
   // Delete related records first (cascade delete)
   await prisma.tripGuide.deleteMany({ where: { tripId: params.id } });
-  await prisma.discount.deleteMany({ where: { tripId: params.id } });
+  await prisma.discountLine.deleteMany({ where: { tripId: params.id } });
   if (trip.paymentsId) {
     await prisma.payment.delete({ where: { id: trip.paymentsId } });
   }
