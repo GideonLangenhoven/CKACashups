@@ -108,13 +108,14 @@ export function Navigation() {
             marginRight: "-5rem",
             padding: "1rem",
             background: "#f9f9f9",
-            borderRadius: "8px"
+            borderRadius: "8px",
+            alignItems: "center"
           }}
         >
           <Link
             href="/trips"
             className={isActive("/trips") ? "btn" : "btn ghost"}
-            style={{ textDecoration: "none", width: "100%" }}
+            style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
             onClick={() => setMenuOpen(false)}
           >
             My Trips
@@ -123,16 +124,16 @@ export function Navigation() {
             <Link
               href="/admin"
               className={isActive("/admin") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", width: "100%" }}
+              style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               Admin
             </Link>
           )}
-          <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem" }}>
+          <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", width: "100%", textAlign: "center" }}>
             {user.email}
           </div>
-          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "100%" }}>
+          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ maxWidth: "280px", width: "100%", textAlign: "center" }}>
             Sign Out
           </button>
         </div>
