@@ -199,31 +199,64 @@ export async function GET(req: NextRequest) {
     ]
   ];
 
+  // Build a map of all dates in the week with trips
+  const tripsByDate = new Map<string, any[]>();
+  for (const trip of trips) {
+    const dateStr = new Date(trip.tripDate).toISOString().slice(0,10);
+    if (!tripsByDate.has(dateStr)) {
+      tripsByDate.set(dateStr, []);
+    }
+    tripsByDate.get(dateStr)!.push(trip);
+  }
+
+  // Generate all days in the week range
+  const allDaysInWeek: string[] = [];
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    allDaysInWeek.push(new Date(d).toISOString().slice(0,10));
+  }
+
   let runningTotal = 0;
-  for (const t of trips) {
-    const counts = {
-      SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
-      INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
-      JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
-    };
-    const totalPayments = (
-      parseFloat(t.payments?.cashReceived?.toString() || '0') +
-      parseFloat(t.payments?.creditCards?.toString() || '0') +
-      parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
-      parseFloat(t.payments?.vouchers?.toString() || '0') +
-      parseFloat(t.payments?.members?.toString() || '0') +
-      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
-      parseFloat(t.payments?.discountsTotal?.toString() || '0')
-    );
-    runningTotal += totalPayments;
-    tripDetailsBody.push([
-      new Date(t.tripDate).toISOString().slice(0,10),
-      t.leadName,
-      t.totalPax.toString(),
-      `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
-      `R ${totalPayments.toFixed(2)}`,
-      `R ${runningTotal.toFixed(2)}`
-    ]);
+  for (const dateStr of allDaysInWeek) {
+    const tripsOnDate = tripsByDate.get(dateStr) || [];
+
+    if (tripsOnDate.length === 0) {
+      // No trips on this date
+      tripDetailsBody.push([
+        dateStr,
+        { text: 'No trips logged', color: '#94a3b8', italics: true },
+        '-',
+        '-',
+        'R 0.00',
+        `R ${runningTotal.toFixed(2)}`
+      ]);
+    } else {
+      // Add all trips for this date
+      for (const t of tripsOnDate) {
+        const counts = {
+          SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
+          INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
+          JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
+        };
+        const totalPayments = (
+          parseFloat(t.payments?.cashReceived?.toString() || '0') +
+          parseFloat(t.payments?.creditCards?.toString() || '0') +
+          parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
+          parseFloat(t.payments?.vouchers?.toString() || '0') +
+          parseFloat(t.payments?.members?.toString() || '0') +
+          parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+          parseFloat(t.payments?.discountsTotal?.toString() || '0')
+        );
+        runningTotal += totalPayments;
+        tripDetailsBody.push([
+          new Date(t.tripDate).toISOString().slice(0,10),
+          t.leadName,
+          t.totalPax.toString(),
+          `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
+          `R ${totalPayments.toFixed(2)}`,
+          `R ${runningTotal.toFixed(2)}`
+        ]);
+      }
+    }
   }
 
   content.push({
