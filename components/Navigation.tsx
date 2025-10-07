@@ -105,6 +105,7 @@ export function Navigation() {
             flexDirection: "column",
             gap: "0.5rem",
             marginTop: "1rem",
+            marginRight: "-5rem",
             padding: "1rem",
             background: "#f9f9f9",
             borderRadius: "8px"
