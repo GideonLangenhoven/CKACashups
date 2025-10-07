@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
 
   // Build PDF with logo
   const { default: PdfPrinter } = await import('pdfmake');
-  const fonts = { Roboto: { normal: 'Helvetica', bold: 'Helvetica-Bold' } } as any;
+  const fonts = { Roboto: { normal: 'Helvetica', bold: 'Helvetica-Bold', italics: 'Helvetica-Oblique', bolditalics: 'Helvetica-BoldOblique' } } as any;
   const printer = new (PdfPrinter as any)(fonts);
 
   const logoPath = path.join(process.cwd(), 'CKAlogo.png');
