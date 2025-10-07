@@ -112,6 +112,31 @@ export default function NewTripPage() {
   }
 
   async function submit(status: "DRAFT"|"SUBMITTED") {
+    // Validate payment fields are numbers
+    const paymentFields = [
+      { name: 'Cash received', value: cashReceived },
+      { name: 'Credit cards', value: creditCards },
+      { name: 'Online EFTs', value: onlineEFTs },
+      { name: 'Vouchers', value: vouchers },
+      { name: 'Members', value: members },
+      { name: 'Agents to invoice', value: agentsToInvoice }
+    ];
+
+    for (const field of paymentFields) {
+      if (field.value && isNaN(parseFloat(field.value))) {
+        alert(`Error: ${field.name} must be a number. Please enter numbers only (e.g., 100 or 100.50)`);
+        return;
+      }
+    }
+
+    // Validate discount amounts
+    for (let i = 0; i < discounts.length; i++) {
+      if (discounts[i].amount && isNaN(parseFloat(discounts[i].amount))) {
+        alert(`Error: Discount #${i + 1} amount must be a number. Please enter numbers only (e.g., 50 or 50.00)`);
+        return;
+      }
+    }
+
     const payload = {
       tripDate,
       leadName,
@@ -168,7 +193,7 @@ export default function NewTripPage() {
       <div className="row" style={{ marginBottom: 12, gap: 8 }}>
         <button className={`btn ${step===1?"":"ghost"}`} onClick={() => setStep(1)}>1. Trip</button>
         <button className={`btn ${step===2?"":"ghost"}`} onClick={() => setStep(2)}>2. Guides & Pax</button>
-        <button className={`btn ${step===3?"":"ghost"}`} onClick={() => setStep(3)}>3. Payments & Flags</button>
+        <button className={`btn ${step===3?"":"ghost"}`} onClick={() => setStep(3)}>3. Payments</button>
       </div>
 
       {step === 1 && (
@@ -240,37 +265,37 @@ export default function NewTripPage() {
           <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Cash received (R)</label>
-              <input className="input" inputMode="decimal" value={cashReceived} onChange={e=>setCashReceived(e.target.value)} />
+              <input className="input" inputMode="decimal" value={cashReceived} onChange={e=>setCashReceived(e.target.value)} placeholder="Numbers only" />
             </div>
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Credit cards (R)</label>
-              <input className="input" inputMode="decimal" value={creditCards} onChange={e=>setCreditCards(e.target.value)} />
+              <input className="input" inputMode="decimal" value={creditCards} onChange={e=>setCreditCards(e.target.value)} placeholder="Numbers only" />
             </div>
           </div>
           <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Online EFTs (R)</label>
-              <input className="input" inputMode="decimal" value={onlineEFTs} onChange={e=>setOnlineEFTs(e.target.value)} />
+              <input className="input" inputMode="decimal" value={onlineEFTs} onChange={e=>setOnlineEFTs(e.target.value)} placeholder="Numbers only" />
             </div>
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Vouchers (R)</label>
-              <input className="input" inputMode="decimal" value={vouchers} onChange={e=>setVouchers(e.target.value)} />
+              <input className="input" inputMode="decimal" value={vouchers} onChange={e=>setVouchers(e.target.value)} placeholder="Numbers only" />
             </div>
           </div>
           <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Members (R)</label>
-              <input className="input" inputMode="decimal" value={members} onChange={e=>setMembers(e.target.value)} />
+              <input className="input" inputMode="decimal" value={members} onChange={e=>setMembers(e.target.value)} placeholder="Numbers only" />
             </div>
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Agents to invoice (R)</label>
-              <input className="input" inputMode="decimal" value={agentsToInvoice} onChange={e=>setAgentsToInvoice(e.target.value)} />
+              <input className="input" inputMode="decimal" value={agentsToInvoice} onChange={e=>setAgentsToInvoice(e.target.value)} placeholder="Numbers only" />
             </div>
           </div>
           <div className="section-title">Discounts</div>
           {discounts.map((d, idx) => (
             <div className="row" key={idx}>
-              <input className="input" placeholder="Amount (R)" value={d.amount} onChange={e=>{
+              <input className="input" placeholder="Amount (R) - Numbers only" inputMode="decimal" value={d.amount} onChange={e=>{
                 const v = e.target.value; setDiscounts(prev=>prev.map((x,i)=>i===idx?{...x, amount: v}:x));
               }} />
               <input className="input" placeholder="Reason" value={d.reason} onChange={e=>{
