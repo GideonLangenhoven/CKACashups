@@ -12,8 +12,8 @@ export const metadata = {
     title: "CKA Cashups",
   },
   icons: {
-    icon: "/CKAlogo.png",
-    apple: "/CKAlogo.png",
+    icon: "/wave.svg",
+    apple: "/wave.svg",
   },
 };
 
