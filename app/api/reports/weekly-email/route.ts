@@ -56,35 +56,24 @@ export async function GET(req: NextRequest) {
     include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true }
   });
 
-  // Calculate per-guide statistics
+  // Calculate per-guide statistics (trip counts only)
   const guideStats = new Map<string, {
     name: string;
     rank: string;
     tripCount: number;
-    trips: Array<{ date: string; time: string; cash: string }>;
-    totalCash: number;
   }>();
 
   for (const trip of trips) {
-    const tripDate = new Date(trip.tripDate);
-    const dateStr = tripDate.toISOString().slice(0, 10);
-    const timeStr = tripDate.toISOString().slice(11, 16);
-    const cash = parseFloat(trip.payments?.cashReceived?.toString() || '0');
-
     for (const tg of trip.guides) {
       if (!guideStats.has(tg.guide.id)) {
         guideStats.set(tg.guide.id, {
           name: tg.guide.name,
           rank: tg.guide.rank,
-          tripCount: 0,
-          trips: [],
-          totalCash: 0
+          tripCount: 0
         });
       }
       const stats = guideStats.get(tg.guide.id)!;
       stats.tripCount++;
-      stats.trips.push({ date: dateStr, time: timeStr, cash: cash.toFixed(2) });
-      stats.totalCash += cash;
     }
   }
 
@@ -170,35 +159,89 @@ export async function GET(req: NextRequest) {
     margin: [0, 0, 0, 15]
   });
 
+  // Guide Summary Table
   const summaryBody: any[] = [
-    [{ text: 'Guide Name', bold: true }, { text: 'Rank', bold: true }, { text: 'Trip Count', bold: true }, { text: 'Total Cash', bold: true }]
+    [{ text: 'Guide Name', bold: true, fillColor: '#f1f5f9' }, { text: 'Rank', bold: true, fillColor: '#f1f5f9' }, { text: 'Trip Count', bold: true, fillColor: '#f1f5f9' }]
   ];
 
   for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-    summaryBody.push([stats.name, stats.rank, stats.tripCount.toString(), `R ${stats.totalCash.toFixed(2)}`]);
+    summaryBody.push([stats.name, stats.rank, stats.tripCount.toString()]);
   }
 
   content.push(
     { text: 'Guide Summary', style: 'sectionHeader', margin: [0, 10, 0, 5] },
-    { table: { headerRows: 1, widths: ['*', 'auto', 'auto', 'auto'], body: summaryBody }, layout: 'lightHorizontalLines' }
+    {
+      table: { headerRows: 1, widths: ['*', 'auto', 'auto'], body: summaryBody },
+      layout: {
+        hLineWidth: () => 0.5,
+        vLineWidth: () => 0,
+        hLineColor: () => '#e2e8f0',
+        paddingLeft: () => 8,
+        paddingRight: () => 8,
+        paddingTop: () => 6,
+        paddingBottom: () => 6
+      },
+      margin: [0, 0, 0, 20]
+    }
   );
 
-  content.push({ text: 'Trip Details by Guide', style: 'sectionHeader', margin: [0, 15, 0, 5], pageBreak: 'before' });
+  // Company Trip Details with Running Total
+  content.push({ text: 'Company Trip Details', style: 'sectionHeader', margin: [0, 15, 0, 5], pageBreak: 'before' });
 
-  for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-    const detailBody: any[] = [
-      [{ text: 'Date', bold: true }, { text: 'Time', bold: true }, { text: 'Cash', bold: true }, { text: 'Running Total', bold: true }]
-    ];
-    let runningTotal = 0;
-    for (const trip of stats.trips) {
-      runningTotal += parseFloat(trip.cash);
-      detailBody.push([trip.date, trip.time, `R ${trip.cash}`, `R ${runningTotal.toFixed(2)}`]);
-    }
-    content.push(
-      { text: `${stats.name} (${stats.rank}) - ${stats.tripCount} trips`, style: 'guideName', margin: [0, 10, 0, 5] },
-      { table: { headerRows: 1, widths: ['auto', 'auto', 'auto', '*'], body: detailBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 10] }
+  const tripDetailsBody: any[] = [
+    [
+      { text: 'Date', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Lead', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Pax', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Guides', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Total', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Running Total', bold: true, fillColor: '#f1f5f9' }
+    ]
+  ];
+
+  let runningTotal = 0;
+  for (const t of trips) {
+    const counts = {
+      SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
+      INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
+      JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
+    };
+    const totalPayments = (
+      parseFloat(t.payments?.cashReceived?.toString() || '0') +
+      parseFloat(t.payments?.creditCards?.toString() || '0') +
+      parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
+      parseFloat(t.payments?.vouchers?.toString() || '0') +
+      parseFloat(t.payments?.members?.toString() || '0') +
+      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+      parseFloat(t.payments?.discountsTotal?.toString() || '0')
     );
+    runningTotal += totalPayments;
+    tripDetailsBody.push([
+      new Date(t.tripDate).toISOString().slice(0,10),
+      t.leadName,
+      t.totalPax.toString(),
+      `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
+      `R ${totalPayments.toFixed(2)}`,
+      `R ${runningTotal.toFixed(2)}`
+    ]);
   }
+
+  content.push({
+    table: {
+      headerRows: 1,
+      widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto'],
+      body: tripDetailsBody
+    },
+    layout: {
+      hLineWidth: () => 0.5,
+      vLineWidth: () => 0,
+      hLineColor: () => '#e2e8f0',
+      paddingLeft: () => 8,
+      paddingRight: () => 8,
+      paddingTop: () => 6,
+      paddingBottom: () => 6
+    }
+  });
 
   const docDefinition = {
     content,
@@ -231,31 +274,55 @@ export async function GET(req: NextRequest) {
   // Build Excel
   const { default: ExcelJS } = await import('exceljs');
   const wb = new ExcelJS.Workbook();
-  const summaryWs = wb.addWorksheet('Summary');
+
+  // Guide Summary Sheet
+  const summaryWs = wb.addWorksheet('Guide Summary');
   summaryWs.columns = [
     { header: 'Guide Name', key: 'name', width: 20 },
     { header: 'Rank', key: 'rank', width: 15 },
-    { header: 'Trip Count', key: 'tripCount', width: 12 },
-    { header: 'Total Cash', key: 'totalCash', width: 12 }
+    { header: 'Trip Count', key: 'tripCount', width: 12 }
   ];
   for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-    summaryWs.addRow({ name: stats.name, rank: stats.rank, tripCount: stats.tripCount, totalCash: stats.totalCash.toFixed(2) });
+    summaryWs.addRow({ name: stats.name, rank: stats.rank, tripCount: stats.tripCount });
   }
 
-  const detailWs = wb.addWorksheet('Trip Details');
+  // Company Trip Details Sheet
+  const detailWs = wb.addWorksheet('Company Trip Details');
   detailWs.columns = [
-    { header: 'Guide Name', key: 'guideName', width: 20 },
     { header: 'Date', key: 'date', width: 12 },
-    { header: 'Time', key: 'time', width: 8 },
-    { header: 'Cash', key: 'cash', width: 12 },
+    { header: 'Lead', key: 'leadName', width: 20 },
+    { header: 'Pax', key: 'pax', width: 10 },
+    { header: 'Guides', key: 'guides', width: 15 },
+    { header: 'Total', key: 'total', width: 12 },
     { header: 'Running Total', key: 'runningTotal', width: 15 }
   ];
-  for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-    let runningTotal = 0;
-    for (const trip of stats.trips) {
-      runningTotal += parseFloat(trip.cash);
-      detailWs.addRow({ guideName: stats.name, date: trip.date, time: trip.time, cash: trip.cash, runningTotal: runningTotal.toFixed(2) });
-    }
+
+  let excelRunningTotal = 0;
+  for (const t of trips) {
+    const counts = {
+      SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
+      INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
+      JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
+    };
+    const totalPayments = (
+      parseFloat(t.payments?.cashReceived?.toString() || '0') +
+      parseFloat(t.payments?.creditCards?.toString() || '0') +
+      parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
+      parseFloat(t.payments?.vouchers?.toString() || '0') +
+      parseFloat(t.payments?.members?.toString() || '0') +
+      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+      parseFloat(t.payments?.discountsTotal?.toString() || '0')
+    );
+    excelRunningTotal += totalPayments;
+
+    detailWs.addRow({
+      date: new Date(t.tripDate).toISOString().slice(0,10),
+      leadName: t.leadName,
+      pax: t.totalPax,
+      guides: `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
+      total: totalPayments.toFixed(2),
+      runningTotal: excelRunningTotal.toFixed(2)
+    });
   }
 
   const xlsBuf = await wb.xlsx.writeBuffer();

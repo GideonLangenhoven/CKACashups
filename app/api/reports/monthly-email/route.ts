@@ -168,15 +168,14 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Trip Details Table
-  content.push({ text: 'Trip Details', style: 'sectionHeader', margin: [0, 0, 0, 8] });
+  // Company Trip Details Table
+  content.push({ text: 'Company Trip Details', style: 'sectionHeader', margin: [0, 0, 0, 8] });
 
   const body: any[] = [[
     { text: 'Date', bold: true, fillColor: '#f1f5f9' },
     { text: 'Lead', bold: true, fillColor: '#f1f5f9' },
     { text: 'Pax', bold: true, fillColor: '#f1f5f9' },
     { text: 'Guides', bold: true, fillColor: '#f1f5f9' },
-    { text: 'Cash', bold: true, fillColor: '#f1f5f9' },
     { text: 'Total', bold: true, fillColor: '#f1f5f9' },
     { text: 'Running Total', bold: true, fillColor: '#f1f5f9' }
   ]];
@@ -202,7 +201,6 @@ export async function GET(req: NextRequest) {
       t.leadName,
       t.totalPax.toString(),
       `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
-      `R ${t.payments?.cashReceived?.toString() || '0'}`,
       `R ${totalPayments.toFixed(2)}`,
       `R ${runningTotal.toFixed(2)}`
     ]);
@@ -211,7 +209,7 @@ export async function GET(req: NextRequest) {
   content.push({
     table: {
       headerRows: 1,
-      widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto'],
+      widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto'],
       body
     },
     layout: {
