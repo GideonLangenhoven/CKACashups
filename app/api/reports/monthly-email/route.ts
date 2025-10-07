@@ -199,19 +199,25 @@ export async function GET(req: NextRequest) {
   }
 
   let runningTotal = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   for (const dateStr of allDaysInMonth) {
     const tripsOnDate = tripsByDate.get(dateStr) || [];
+    const currentDate = new Date(dateStr + 'T00:00:00Z');
 
     if (tripsOnDate.length === 0) {
-      // No trips on this date
-      body.push([
-        dateStr,
-        { text: 'No trips logged', color: '#94a3b8', italics: true },
-        '-',
-        '-',
-        'R 0.00',
-        `R ${runningTotal.toFixed(2)}`
-      ]);
+      // Only show "No trips logged" for dates in the past or today, skip future dates
+      if (currentDate <= today) {
+        body.push([
+          dateStr,
+          { text: 'No trips logged', color: '#94a3b8', italics: true },
+          '-',
+          '-',
+          'R 0.00',
+          `R ${runningTotal.toFixed(2)}`
+        ]);
+      }
     } else {
       // Add all trips for this date
       for (const t of tripsOnDate) {
