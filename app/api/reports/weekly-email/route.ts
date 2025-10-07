@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
   const fonts = { Roboto: { normal: 'Helvetica', bold: 'Helvetica-Bold', italics: 'Helvetica-Oblique', bolditalics: 'Helvetica-BoldOblique' } } as any;
   const printer = new (PdfPrinter as any)(fonts);
 
-  const logoPath = path.join(process.cwd(), 'CKAlogo.png');
+  const logoPath = path.join(process.cwd(), 'public', 'CKAlogo.png');
   let logoDataUrl = '';
   try {
     const logoBuffer = fs.readFileSync(logoPath);

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   const printer = new (PdfPrinter as any)(fonts);
 
   // Read logo and convert to base64
-  const logoPath = path.join(process.cwd(), 'CKAlogo.png');
+  const logoPath = path.join(process.cwd(), 'public', 'CKAlogo.png');
   let logoDataUrl = '';
   try {
     const logoBuffer = fs.readFileSync(logoPath);
