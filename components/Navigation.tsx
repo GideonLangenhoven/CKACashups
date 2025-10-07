@@ -34,20 +34,23 @@ export function Navigation() {
 
   return (
     <nav style={{
-      padding: "1rem",
       borderBottom: "1px solid #e5e5e5",
       background: "#fff",
-      position: "relative",
-      width: "100%",
-      maxWidth: "1200px"
+      width: "100%"
     }}
     className="main-nav">
-      {/* Mobile and Desktop Header */}
       <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center"
+        padding: "1rem",
+        maxWidth: "1200px",
+        margin: "0 auto",
+        width: "100%"
       }}>
+        {/* Mobile and Desktop Header */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}>
         {/* Logo */}
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none", color: "#333" }}>
           <img src="/CKAlogo.png" alt="CKA Logo" style={{ height: "32px", width: "auto" }} />
@@ -157,11 +160,12 @@ export function Navigation() {
             margin-right: 0;
             padding: 0.75rem 5px;
           }
-          :global(.main-nav) {
+          :global(.main-nav > div) {
             padding: 0.5rem 5px !important;
           }
         }
       `}</style>
+      </div>
     </nav>
   );
 }
