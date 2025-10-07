@@ -118,6 +118,58 @@ export async function GET(req: NextRequest) {
     { text: `${week} (${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)})`, style: 'subheader', alignment: 'center', margin: [0, 0, 0, 15] }
   );
 
+  // Calculate totals for summary
+  const totalTrips = trips.length;
+  const totalCashCollected = trips.reduce((sum, t) => sum + parseFloat(t.payments?.cashReceived?.toString() || '0'), 0);
+  const totalAllPayments = trips.reduce((sum, t) => {
+    return sum +
+      parseFloat(t.payments?.cashReceived?.toString() || '0') +
+      parseFloat(t.payments?.creditCards?.toString() || '0') +
+      parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
+      parseFloat(t.payments?.vouchers?.toString() || '0') +
+      parseFloat(t.payments?.members?.toString() || '0') +
+      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+      parseFloat(t.payments?.discountsTotal?.toString() || '0');
+  }, 0);
+
+  // Calculate daily totals
+  const dailyTotals = new Map<string, number>();
+  for (const trip of trips) {
+    const dateStr = new Date(trip.tripDate).toISOString().slice(0, 10);
+    const total = parseFloat(trip.payments?.cashReceived?.toString() || '0') +
+      parseFloat(trip.payments?.creditCards?.toString() || '0') +
+      parseFloat(trip.payments?.onlineEFTs?.toString() || '0') +
+      parseFloat(trip.payments?.vouchers?.toString() || '0') +
+      parseFloat(trip.payments?.members?.toString() || '0') +
+      parseFloat(trip.payments?.agentsToInvoice?.toString() || '0') -
+      parseFloat(trip.payments?.discountsTotal?.toString() || '0');
+    dailyTotals.set(dateStr, (dailyTotals.get(dateStr) || 0) + total);
+  }
+
+  // Add summary statistics in top left
+  content.push({
+    columns: [
+      {
+        width: '*',
+        stack: [
+          { text: 'Period Summary', style: 'summaryHeader', margin: [0, 0, 0, 8] },
+          { text: `Report Date: ${new Date().toISOString().slice(0, 10)}`, style: 'summaryText' },
+          { text: `Total Trips: ${totalTrips}`, style: 'summaryText' },
+          { text: `Total Cash Collected: R ${totalCashCollected.toFixed(2)}`, style: 'summaryText' },
+          { text: `Total All Payments: R ${totalAllPayments.toFixed(2)}`, style: 'summaryText', margin: [0, 0, 0, 8] },
+          { text: 'Daily Breakdown:', style: 'summarySubheader', margin: [0, 4, 0, 4] },
+          ...Array.from(dailyTotals.entries()).sort().map(([date, total]) => ({
+            text: `${date}: R ${total.toFixed(2)}`,
+            style: 'summaryText',
+            fontSize: 9
+          }))
+        ]
+      },
+      { width: '*', text: '' }
+    ],
+    margin: [0, 0, 0, 15]
+  });
+
   const summaryBody: any[] = [
     [{ text: 'Guide Name', bold: true }, { text: 'Rank', bold: true }, { text: 'Trip Count', bold: true }, { text: 'Total Cash', bold: true }]
   ];
@@ -135,14 +187,16 @@ export async function GET(req: NextRequest) {
 
   for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
     const detailBody: any[] = [
-      [{ text: 'Date', bold: true }, { text: 'Time', bold: true }, { text: 'Cash', bold: true }]
+      [{ text: 'Date', bold: true }, { text: 'Time', bold: true }, { text: 'Cash', bold: true }, { text: 'Running Total', bold: true }]
     ];
+    let runningTotal = 0;
     for (const trip of stats.trips) {
-      detailBody.push([trip.date, trip.time, `R ${trip.cash}`]);
+      runningTotal += parseFloat(trip.cash);
+      detailBody.push([trip.date, trip.time, `R ${trip.cash}`, `R ${runningTotal.toFixed(2)}`]);
     }
     content.push(
       { text: `${stats.name} (${stats.rank}) - ${stats.tripCount} trips`, style: 'guideName', margin: [0, 10, 0, 5] },
-      { table: { headerRows: 1, widths: ['auto', 'auto', '*'], body: detailBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 10] }
+      { table: { headerRows: 1, widths: ['auto', 'auto', 'auto', '*'], body: detailBody }, layout: 'lightHorizontalLines', margin: [0, 0, 0, 10] }
     );
   }
 
@@ -154,7 +208,10 @@ export async function GET(req: NextRequest) {
       header: { fontSize: 20, bold: true, margin: [0, 0, 0, 5], color: '#0A66C2' },
       subheader: { fontSize: 11, margin: [0, 0, 0, 5], color: '#64748b' },
       sectionHeader: { fontSize: 14, bold: true, color: '#334155', margin: [0, 10, 0, 8] },
-      guideName: { fontSize: 11, bold: true, color: '#475569' }
+      guideName: { fontSize: 11, bold: true, color: '#475569' },
+      summaryHeader: { fontSize: 13, bold: true, color: '#334155' },
+      summarySubheader: { fontSize: 10, bold: true, color: '#475569' },
+      summaryText: { fontSize: 10, color: '#1e293b', margin: [0, 2, 0, 0] }
     },
     defaultStyle: {
       fontSize: 10,
@@ -190,11 +247,14 @@ export async function GET(req: NextRequest) {
     { header: 'Guide Name', key: 'guideName', width: 20 },
     { header: 'Date', key: 'date', width: 12 },
     { header: 'Time', key: 'time', width: 8 },
-    { header: 'Cash', key: 'cash', width: 12 }
+    { header: 'Cash', key: 'cash', width: 12 },
+    { header: 'Running Total', key: 'runningTotal', width: 15 }
   ];
   for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
+    let runningTotal = 0;
     for (const trip of stats.trips) {
-      detailWs.addRow({ guideName: stats.name, date: trip.date, time: trip.time, cash: trip.cash });
+      runningTotal += parseFloat(trip.cash);
+      detailWs.addRow({ guideName: stats.name, date: trip.date, time: trip.time, cash: trip.cash, runningTotal: runningTotal.toFixed(2) });
     }
   }
 
