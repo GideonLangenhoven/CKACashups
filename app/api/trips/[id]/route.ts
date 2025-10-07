@@ -43,7 +43,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
       entityId: trip.id,
       action: 'DELETE',
       beforeJSON: trip as any,
-      afterJSON: null,
+      afterJSON: undefined,
       actorUserId: user.id
     }
   });
