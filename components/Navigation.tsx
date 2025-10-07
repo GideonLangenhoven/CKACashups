@@ -114,13 +114,13 @@ export function Navigation() {
             padding: "1rem",
             background: "#f9f9f9",
             borderRadius: "8px",
-            alignItems: "center"
+            alignItems: "flex-start"
           }}
         >
           <Link
             href="/trips"
             className={isActive("/trips") ? "btn" : "btn ghost"}
-            style={{ textDecoration: "none", width: "auto", textAlign: "center" }}
+            style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
             onClick={() => setMenuOpen(false)}
           >
             My Trips
@@ -129,16 +129,16 @@ export function Navigation() {
             <Link
               href="/admin"
               className={isActive("/admin") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", width: "auto", textAlign: "center" }}
+              style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
               onClick={() => setMenuOpen(false)}
             >
               Admin
             </Link>
           )}
-          <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", width: "100%", textAlign: "center" }}>
+          <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", width: "100%", textAlign: "left" }}>
             {user.email}
           </div>
-          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "auto", textAlign: "center" }}>
+          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "auto", textAlign: "left" }}>
             Sign Out
           </button>
         </div>
