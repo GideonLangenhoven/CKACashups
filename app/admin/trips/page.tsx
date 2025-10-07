@@ -37,6 +37,23 @@ export default function AdminTripsPage() {
     finally { setUpdating(null); }
   }
 
+  async function deleteTrip(id: string, leadName: string, tripDate: string) {
+    if (!confirm(`Are you sure you want to DELETE this trip?\n\nLead: ${leadName}\nDate: ${new Date(tripDate).toLocaleDateString()}\n\nThis action cannot be undone.`)) {
+      return;
+    }
+    setUpdating(id);
+    try {
+      const res = await fetch(`/api/trips/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(await res.text());
+      alert('Trip deleted successfully');
+      mutate();
+    } catch (e: any) {
+      alert('Error deleting trip: ' + e.message);
+    } finally {
+      setUpdating(null);
+    }
+  }
+
   return (
     <div className="stack">
       <AdminNav />
@@ -54,15 +71,43 @@ export default function AdminTripsPage() {
       </div>
       {isLoading ? <div className="card">Loading...</div> : trips.map((t: any) => (
         <div key={t.id} className="card">
-          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div><strong>{new Date(t.tripDate).toLocaleDateString()}</strong> — {t.leadName}</div>
-              <div>Status: {t.status} | Pax: {t.totalPax}</div>
-            </div>
+          <div style={{ marginBottom: '12px' }}>
+            <div><strong>{new Date(t.tripDate).toLocaleDateString()}</strong> — {t.leadName}</div>
+            <div style={{ color: '#666', fontSize: '0.9rem' }}>Status: {t.status} | Pax: {t.totalPax}</div>
+          </div>
+          <div style={{ marginBottom: '8px' }}>
+            <div style={{ fontWeight: 500, marginBottom: '6px', fontSize: '0.9rem' }}>Change Status:</div>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-              {['DRAFT','SUBMITTED','APPROVED','REJECTED','LOCKED'].map(s => (
-                <button key={s} className="btn ghost" disabled={updating===t.id} onClick={()=>setStatus(t.id, s)}>{s}</button>
+              {['APPROVED','REJECTED','LOCKED'].map(s => (
+                <button
+                  key={s}
+                  className={t.status === s ? "btn" : "btn ghost"}
+                  disabled={updating===t.id || t.status === s}
+                  onClick={()=>setStatus(t.id, s)}
+                >
+                  {s}
+                </button>
               ))}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontWeight: 500, marginBottom: '6px', fontSize: '0.9rem' }}>Actions:</div>
+            <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+              <a
+                href={`/trips/${t.id}`}
+                className="btn secondary"
+                style={{ textDecoration: 'none' }}
+              >
+                Edit
+              </a>
+              <button
+                className="btn ghost"
+                disabled={updating===t.id}
+                onClick={()=>deleteTrip(t.id, t.leadName, t.tripDate)}
+                style={{ borderColor: '#dc2626', color: '#dc2626' }}
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

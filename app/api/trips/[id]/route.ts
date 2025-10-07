@@ -23,3 +23,42 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   logEvent('trip_updated', { tripId: trip.id, userId: user.id });
   return Response.json({ trip: updated });
 }
+
+export async function DELETE(_: NextRequest, { params }: { params: { id: string }}) {
+  const user = await getServerSession();
+  if (!user?.id) return new Response('Unauthorized', { status: 401 });
+  if (user.role !== 'ADMIN') return new Response('Forbidden - Admin only', { status: 403 });
+
+  const trip = await prisma.trip.findUnique({
+    where: { id: params.id },
+    include: { payments: true, discounts: true, guides: true }
+  });
+
+  if (!trip) return new Response('Not found', { status: 404 });
+
+  // Log the deletion in audit log before deleting
+  await prisma.auditLog.create({
+    data: {
+      entityType: 'Trip',
+      entityId: trip.id,
+      action: 'DELETE',
+      beforeJSON: trip as any,
+      afterJSON: null,
+      actorUserId: user.id
+    }
+  });
+
+  // Delete related records first (cascade delete)
+  await prisma.tripGuide.deleteMany({ where: { tripId: params.id } });
+  await prisma.discount.deleteMany({ where: { tripId: params.id } });
+  if (trip.paymentsId) {
+    await prisma.payment.delete({ where: { id: trip.paymentsId } });
+  }
+
+  // Delete the trip
+  await prisma.trip.delete({ where: { id: params.id } });
+
+  logEvent('trip_deleted', { tripId: params.id, userId: user.id, leadName: trip.leadName });
+
+  return Response.json({ success: true, message: 'Trip deleted successfully' });
+}
