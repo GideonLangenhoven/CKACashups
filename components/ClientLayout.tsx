@@ -7,7 +7,7 @@ export function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
       <Navigation />
-      <main style={{ padding: "1rem" }}>{children}</main>
+      <main style={{ padding: "1rem", width: "100%", maxWidth: "1200px", margin: "0 auto" }}>{children}</main>
     </SessionProvider>
   );
 }

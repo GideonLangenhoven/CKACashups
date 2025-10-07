@@ -12,12 +12,24 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-html, body { height: 100%; }
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
 body {
   margin: 0;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: linear-gradient(135deg, #f7f9fc 0%, #e8f0f7 100%);
   background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+main {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* Cards with animations */

@@ -37,7 +37,9 @@ export function Navigation() {
       padding: "1rem",
       borderBottom: "1px solid #e5e5e5",
       background: "#fff",
-      position: "relative"
+      position: "relative",
+      width: "100%",
+      maxWidth: "1200px"
     }}
     className="main-nav">
       {/* Mobile and Desktop Header */}
