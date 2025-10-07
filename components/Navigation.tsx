@@ -145,12 +145,12 @@ export function Navigation() {
       )}
 
       <style jsx>{`
-        @media (min-width: 769px) {
+        @media (min-width: 1025px) {
           .desktop-nav {
             display: block !important;
           }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
           .mobile-menu-btn {
             display: block !important;
           }

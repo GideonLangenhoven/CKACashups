@@ -242,15 +242,37 @@ code {
   color: #e11d48;
 }
 
-/* Mobile-first tweaks */
+/* Tablet tweaks */
+@media (max-width: 1024px) and (min-width: 769px) {
+  body {
+    font-size: 16px;
+    padding: 0 10px;
+  }
+
+  main {
+    padding: 1rem 10px !important;
+  }
+}
+
+/* Mobile-first tweaks - Apply to all mobile devices consistently */
 @media (max-width: 768px) {
+  * {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html {
+    font-size: 16px;
+  }
+
   body {
     font-size: 16px;
     padding: 0 5px;
+    min-width: 320px;
   }
 
   main {
     padding: 0.5rem 5px !important;
+    min-width: 0;
   }
 
   .card {
@@ -279,6 +301,7 @@ code {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    font-size: 16px;
   }
 
   h2 { font-size: 1.25rem; }
