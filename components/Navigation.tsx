@@ -115,7 +115,7 @@ export function Navigation() {
           <Link
             href="/trips"
             className={isActive("/trips") ? "btn" : "btn ghost"}
-            style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
+            style={{ textDecoration: "none", width: "auto", textAlign: "center" }}
             onClick={() => setMenuOpen(false)}
           >
             My Trips
@@ -124,7 +124,7 @@ export function Navigation() {
             <Link
               href="/admin"
               className={isActive("/admin") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
+              style={{ textDecoration: "none", width: "auto", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               Admin
@@ -133,7 +133,7 @@ export function Navigation() {
           <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", width: "100%", textAlign: "center" }}>
             {user.email}
           </div>
-          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ maxWidth: "280px", width: "100%", textAlign: "center" }}>
+          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "auto", textAlign: "center" }}>
             Sign Out
           </button>
         </div>
