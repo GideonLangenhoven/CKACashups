@@ -228,21 +228,6 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
-
-      <div className="card">
-        <div style={{ marginBottom: 8 }}>
-          <strong>Automated Email Reports:</strong>
-        </div>
-        <div style={{ marginBottom: 4 }}>
-          • Weekly: <code>/api/reports/weekly-email?week=YYYY-Wnn</code>
-        </div>
-        <div>
-          • Monthly: <code>/api/reports/monthly-email?month=YYYY-MM</code>
-        </div>
-        <div style={{ marginTop: 8, fontSize: '0.9em', color: '#666' }}>
-          Set up Vercel Cron jobs to automatically send these reports via email. See DEPLOYMENT.md for details.
-        </div>
-      </div>
     </div>
   );
 }
