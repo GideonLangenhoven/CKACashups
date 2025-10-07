@@ -52,7 +52,7 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
   await prisma.tripGuide.deleteMany({ where: { tripId: params.id } });
   await prisma.discountLine.deleteMany({ where: { tripId: params.id } });
   if (trip.payments) {
-    await prisma.payment.delete({ where: { id: trip.payments.id } });
+    await prisma.paymentBreakdown.delete({ where: { id: trip.payments.id } });
   }
 
   // Delete the trip
