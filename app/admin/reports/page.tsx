@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState, useEffect } from 'react';
+import { AdminNav } from '@/components/AdminNav';
 
 function ym(d: Date) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function ymd(d: Date) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
@@ -49,7 +50,7 @@ export default function ReportsPage() {
   if (!mounted) {
     return (
       <div className="stack">
-        <h2>Reports</h2>
+        <AdminNav />
         <div className="card">Loading...</div>
       </div>
     );
@@ -57,7 +58,7 @@ export default function ReportsPage() {
 
   return (
     <div className="stack">
-      <h2>Reports</h2>
+      <AdminNav />
       <div className="card">
         <label className="label">Report Type</label>
         <select className="input" value={reportType} onChange={e=>setReportType(e.target.value as any)}>

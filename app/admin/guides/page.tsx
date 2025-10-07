@@ -1,6 +1,7 @@
 "use client";
 import useSWR from 'swr';
 import { useState } from 'react';
+import { AdminNav } from '@/components/AdminNav';
 
 const fetcher = (url: string) => fetch(url).then(r=>r.json());
 
@@ -49,7 +50,7 @@ export default function GuidesPage() {
 
   return (
     <div className="stack">
-      <h2>Guides</h2>
+      <AdminNav />
       <div className="card">
         <div className="stack">
           <div className="row">

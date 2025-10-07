@@ -1,6 +1,7 @@
 "use client";
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
+import { AdminNav } from '@/components/AdminNav';
 
 const fetcher = (url: string) => fetch(url).then(r=>r.json());
 
@@ -38,7 +39,7 @@ export default function AdminTripsPage() {
 
   return (
     <div className="stack">
-      <h2>All Trips</h2>
+      <AdminNav />
       <div className="card">
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <input className="input" placeholder="Search lead name" value={lead} onChange={e=>setLead(e.target.value)} style={{ maxWidth: 240 }} />
