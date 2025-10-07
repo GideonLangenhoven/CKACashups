@@ -211,8 +211,10 @@ export async function GET(req: NextRequest) {
 
   // Generate all days in the week range
   const allDaysInWeek: string[] = [];
-  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    allDaysInWeek.push(new Date(d).toISOString().slice(0,10));
+  const current = new Date(start);
+  while (current <= end) {
+    allDaysInWeek.push(current.toISOString().slice(0,10));
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   let runningTotal = 0;

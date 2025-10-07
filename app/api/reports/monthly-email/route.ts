@@ -192,8 +192,10 @@ export async function GET(req: NextRequest) {
 
   // Generate all days in the month range
   const allDaysInMonth: string[] = [];
-  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
-    allDaysInMonth.push(new Date(d).toISOString().slice(0,10));
+  const current = new Date(start);
+  while (current <= end) {
+    allDaysInMonth.push(current.toISOString().slice(0,10));
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   let runningTotal = 0;
