@@ -19,7 +19,10 @@ export default function GuidesPage() {
     if (res.ok) { setName(""); setEmail(""); mutate(); } else { alert(await res.text()); }
   }
 
-  async function deactivate(id: string) {
+  async function deactivate(id: string, name: string) {
+    if (!confirm(`Are you sure you want to deactivate this guide?\n\nGuide: ${name}\n\nThis will remove them from the active guides list.`)) {
+      return;
+    }
     const res = await fetch(`/api/guides/${id}`, { method: 'DELETE' });
     if (res.ok) mutate(); else alert(await res.text());
   }
@@ -51,6 +54,21 @@ export default function GuidesPage() {
   return (
     <div className="stack">
       <AdminNav />
+      <style jsx>{`
+        .deactivate-btn {
+          border-color: #dc2626 !important;
+          color: #dc2626 !important;
+        }
+        .deactivate-btn:hover {
+          background: #dc2626 !important;
+          color: white !important;
+          border-color: #dc2626 !important;
+        }
+        .deactivate-btn:active {
+          background: #b91c1c !important;
+          color: white !important;
+        }
+      `}</style>
       <div className="card">
         <div className="stack">
           <div className="row">
@@ -88,7 +106,7 @@ export default function GuidesPage() {
               <>
                 <span style={{ marginRight: '1rem', color: '#666' }}>{g.rank}</span>
                 <button className="btn" onClick={()=>startEdit(g.id, g.rank)} style={{ marginRight: '0.5rem' }}>Change Rank</button>
-                <button className="btn ghost" onClick={()=>deactivate(g.id)}>Deactivate</button>
+                <button className="btn ghost deactivate-btn" onClick={()=>deactivate(g.id, g.name)}>Deactivate</button>
               </>
             )}
           </div>
