@@ -99,8 +99,8 @@ export default function SignIn() {
           {submitting ? "Signing in..." : "Sign in"}
         </button>
         <div style={{ marginTop: "1rem", textAlign: "center" }}>
-          <a href="/auth/forgot-password" style={{ color: "#0066cc", textDecoration: "none", fontSize: "0.9rem" }}>
-            Forgot your name?
+          <a href="/auth/reset-password-request" style={{ color: "#0066cc", textDecoration: "none", fontSize: "0.9rem" }}>
+            Reset Password
           </a>
         </div>
         <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center" }}>
