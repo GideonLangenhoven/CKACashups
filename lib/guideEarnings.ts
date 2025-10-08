@@ -59,8 +59,8 @@ export function calculateGuideEarnings(
     throw new Error(`No earnings rate defined for ${effectivePax} pax`);
   }
 
-  // If they're the trip leader, use trip leader rate
-  if (isTripLeader && rank === 'SENIOR') {
+  // If they're the trip leader, use trip leader rate (SENIOR or INTERMEDIATE)
+  if (isTripLeader && (rank === 'SENIOR' || rank === 'INTERMEDIATE')) {
     return rates.tripLeader;
   }
 

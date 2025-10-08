@@ -221,7 +221,7 @@ export default function NewTripPage() {
           <div className="section-title">Select trip leader</div>
           <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #e5e5e5' }}>
             <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: 12 }}>
-              Only Senior guides can be trip leaders
+              Senior and Intermediate guides can be trip leaders
             </div>
             {loadingGuides ? <div>Loading guides...</div> : (
               <select
@@ -231,8 +231,8 @@ export default function NewTripPage() {
                 style={{ maxWidth: '300px' }}
               >
                 <option value="">-- Select Trip Leader --</option>
-                {guides.filter(g => g.rank === 'SENIOR').map(g => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
+                {guides.filter(g => g.rank === 'SENIOR' || g.rank === 'INTERMEDIATE').map(g => (
+                  <option key={g.id} value={g.id}>{g.name} ({g.rank})</option>
                 ))}
               </select>
             )}
