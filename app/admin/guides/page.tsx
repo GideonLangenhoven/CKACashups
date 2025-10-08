@@ -12,7 +12,18 @@ export default function GuidesPage() {
   const [rank, setRank] = useState("SENIOR");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRank, setEditRank] = useState("");
-  const guides = data?.guides || [];
+
+  // Sort guides by rank: SENIOR, INTERMEDIATE, JUNIOR, TRAINEE
+  const rankOrder: Record<string, number> = {
+    'SENIOR': 1,
+    'INTERMEDIATE': 2,
+    'JUNIOR': 3,
+    'TRAINEE': 4
+  };
+
+  const guides = (data?.guides || []).sort((a: any, b: any) => {
+    return (rankOrder[a.rank] || 99) - (rankOrder[b.rank] || 99);
+  });
 
   async function addGuide() {
     const res = await fetch('/api/guides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rank, email: email || undefined }) });
