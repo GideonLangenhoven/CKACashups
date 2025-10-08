@@ -29,6 +29,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content={process.env.BRAND_PRIMARY || "#0A66C2"} />
+        <link rel="apple-touch-icon" href="/wave.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/wave.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/wave.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/wave.png" />
       </head>
       <body>
         <ClientLayout>{children}</ClientLayout>
