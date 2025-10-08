@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import Link from "next/link";
+import { SubmitInvoiceButton } from "@/components/SubmitInvoiceButton";
 
 export default async function EarningsPage() {
   const user = await getServerSession();
@@ -76,6 +77,8 @@ export default async function EarningsPage() {
   return (
     <div className="stack">
       <h2>My Earnings - {userWithGuide.guide?.name}</h2>
+
+      <SubmitInvoiceButton />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
         <div className="card">
