@@ -40,7 +40,7 @@ export default async function EarningsPage() {
   // Calculate earnings by period
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
+  const currentMonthNum = now.getMonth();
 
   const earningsByPeriod = {
     today: 0,
@@ -63,7 +63,7 @@ export default async function EarningsPage() {
       earningsByPeriod.thisYear += earnings;
       earningsByPeriod.tripCountThisYear++;
 
-      if (tripDate.getMonth() === currentMonth) {
+      if (tripDate.getMonth() === currentMonthNum) {
         earningsByPeriod.thisMonth += earnings;
         earningsByPeriod.tripCountThisMonth++;
 
