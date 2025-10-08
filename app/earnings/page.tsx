@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import Link from "next/link";
 import { SubmitInvoiceButton } from "@/components/SubmitInvoiceButton";
+import { DisputeButton } from "@/components/DisputeButton";
 
 export default async function EarningsPage() {
   const user = await getServerSession();
@@ -74,11 +75,23 @@ export default async function EarningsPage() {
     }
   }
 
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
   return (
     <div className="stack">
       <h2>My Earnings - {userWithGuide.guide?.name}</h2>
 
-      <SubmitInvoiceButton />
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 300 }}>
+          <SubmitInvoiceButton />
+        </div>
+        <DisputeButton
+          guideName={userWithGuide.guide?.name || ''}
+          month={currentMonth}
+          tripCount={earningsByPeriod.tripCountThisMonth}
+          totalEarnings={earningsByPeriod.thisMonth}
+        />
+      </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
         <div className="card">
