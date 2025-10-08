@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
         discounts: discounts && discounts.length ? { create: discounts.map((d: any) => ({ amount: d.amount, reason: d.reason })) } : undefined,
         guides: guides && guides.length ? { create: guides.map((g: any) => {
           const guide = dbGuides.find((x: any) => x.id === g.guideId);
+          if (!guide) throw new Error(`Guide not found: ${g.guideId}`);
           const paxCount = g.pax || 0;
           const isTripLeader = g.guideId === tripLeaderId;
           const feeAmount = calculateGuideEarnings(totalPax || 0, guide.rank, isTripLeader);
