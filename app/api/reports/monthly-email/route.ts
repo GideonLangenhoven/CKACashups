@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
       parseFloat(trip.payments?.vouchers?.toString() || '0') +
       parseFloat(trip.payments?.members?.toString() || '0') +
       parseFloat(trip.payments?.agentsToInvoice?.toString() || '0') +
-      parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
+      parseFloat(trip.payments?.waterPhoneSunblock?.toString() || '0') -
       parseFloat(trip.payments?.discountsTotal?.toString() || '0');
     weeklyTotals.set(weekKey, (weeklyTotals.get(weekKey) || 0) + total);
   }
