@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export default async function TripsListPage() {
   const user = await getServerSession();
@@ -9,8 +10,18 @@ export default async function TripsListPage() {
   // Get user's guide ID if they are linked to a guide
   const userWithGuide = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { guideId: true, role: true }
+    select: { guideId: true, role: true, needsPasswordReset: true }
   });
+
+  // Redirect to set password if needed
+  if (userWithGuide?.needsPasswordReset) {
+    redirect("/auth/set-password");
+  }
+
+  // Redirect guides to earnings page
+  if (userWithGuide?.guideId && userWithGuide.role !== 'ADMIN') {
+    redirect("/earnings");
+  }
 
   const where: any = {};
 

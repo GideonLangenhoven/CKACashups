@@ -9,18 +9,20 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      Role     @default(USER)
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  trips     Trip[]   @relation("UserTrips")
-  auditLogs AuditLog[]
-  invites   Invite[]
-  guideId   String?  @unique
-  guide     Guide?   @relation(fields: [guideId], references: [id])
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String?
+  password           String?
+  needsPasswordReset Boolean  @default(true)
+  role               Role     @default(USER)
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  trips              Trip[]   @relation("UserTrips")
+  auditLogs          AuditLog[]
+  invites            Invite[]
+  guideId            String?  @unique
+  guide              Guide?   @relation(fields: [guideId], references: [id])
 }
 
 enum Role {
