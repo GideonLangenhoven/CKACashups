@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 
   const trips = await prisma.trip.findMany({
     where: { tripDate: { gte: start, lte: end } },
-    orderBy: { tripDate: 'asc' },
+    orderBy: { createdAt: 'asc' },
     include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true }
   });
 
@@ -191,6 +191,7 @@ export async function GET(req: NextRequest) {
   const tripDetailsBody: any[] = [
     [
       { text: 'Date', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Time', bold: true, fillColor: '#f1f5f9' },
       { text: 'Lead', bold: true, fillColor: '#f1f5f9' },
       { text: 'Pax', bold: true, fillColor: '#f1f5f9' },
       { text: 'Guides', bold: true, fillColor: '#f1f5f9' },
@@ -230,6 +231,7 @@ export async function GET(req: NextRequest) {
       if (currentDate <= today) {
         tripDetailsBody.push([
           dateStr,
+          '-',
           { text: 'No trips logged', color: '#94a3b8', italics: true },
           '-',
           '-',
@@ -255,8 +257,10 @@ export async function GET(req: NextRequest) {
           parseFloat(t.payments?.discountsTotal?.toString() || '0')
         );
         runningTotal += totalPayments;
+        const submittedTime = new Date(t.createdAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false });
         tripDetailsBody.push([
           new Date(t.tripDate).toISOString().slice(0,10),
+          submittedTime,
           t.leadName,
           t.totalPax.toString(),
           `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
@@ -270,7 +274,7 @@ export async function GET(req: NextRequest) {
   content.push({
     table: {
       headerRows: 1,
-      widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto'],
+      widths: ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto'],
       body: tripDetailsBody
     },
     layout: {
