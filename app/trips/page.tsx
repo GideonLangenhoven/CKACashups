@@ -50,7 +50,7 @@ export default async function TripsListPage() {
                 {myGuideAssignment && (
                   <div style={{ marginTop: 8, color: '#059669', fontWeight: 500 }}>
                     My Earnings: R {parseFloat(myGuideAssignment.feeAmount?.toString() || '0').toFixed(2)}
-                    {t.tripLeaderId === userWithGuide.guideId && ' (Trip Leader)'}
+                    {t.tripLeaderId === userWithGuide?.guideId && ' (Trip Leader)'}
                   </div>
                 )}
               </div>
