@@ -4,7 +4,7 @@ import DatePicker from "@/components/DatePicker";
 import TimePicker from "@/components/TimePicker";
 import { todayLocalISODate } from "@/lib/time";
 
-type Guide = { id: string; name: string; rank: "SENIOR"|"INTERMEDIATE"|"JUNIOR" };
+type Guide = { id: string; name: string; rank: "SENIOR"|"INTERMEDIATE"|"JUNIOR"|"TRAINEE" };
 
 export default function NewTripPage() {
   const [step, setStep] = useState(1);
@@ -18,6 +18,7 @@ export default function NewTripPage() {
   const [paxGuideNote, setPaxGuideNote] = useState("");
   const [totalPax, setTotalPax] = useState<number>(0);
 
+  const [tripLeaderId, setTripLeaderId] = useState<string>("");
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
   const [cashReceived, setCashReceived] = useState<string>("");
@@ -143,6 +144,7 @@ export default function NewTripPage() {
       leadName,
       paxGuideNote,
       totalPax,
+      tripLeaderId: tripLeaderId || undefined,
       paymentsMadeYN,
       picsUploadedYN,
       tripEmailSentYN,
@@ -216,16 +218,36 @@ export default function NewTripPage() {
 
       {step === 2 && (
         <div className="stack">
+          <div className="section-title">Select trip leader</div>
+          <div style={{ marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #e5e5e5' }}>
+            <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: 12 }}>
+              Only Senior guides can be trip leaders
+            </div>
+            {loadingGuides ? <div>Loading guides...</div> : (
+              <select
+                className="input"
+                value={tripLeaderId}
+                onChange={e => setTripLeaderId(e.target.value)}
+                style={{ maxWidth: '300px' }}
+              >
+                <option value="">-- Select Trip Leader --</option>
+                {guides.filter(g => g.rank === 'SENIOR').map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <div className="section-title">Select trip guides</div>
           {loadingGuides ? <div>Loading guides...</div> : (
             <div className="stack">
-              {['SENIOR', 'INTERMEDIATE', 'JUNIOR'].map(rank => {
+              {['SENIOR', 'INTERMEDIATE', 'JUNIOR', 'TRAINEE'].map(rank => {
                 const guidesInRank = guides.filter(g => g && g.rank === rank);
                 if (guidesInRank.length === 0) return null;
                 return (
-                  <div key={rank} style={{ marginBottom: 24, paddingBottom: 16, borderBottom: rank !== 'JUNIOR' ? '1px solid #e5e5e5' : 'none' }}>
+                  <div key={rank} style={{ marginBottom: 24, paddingBottom: 16, borderBottom: rank !== 'TRAINEE' ? '1px solid #e5e5e5' : 'none' }}>
                     <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 12, color: '#333' }}>
-                      {rank === 'SENIOR' ? 'Senior Guides' : rank === 'INTERMEDIATE' ? 'Intermediate Guides' : 'Junior Guides'}
+                      {rank === 'SENIOR' ? 'Senior Guides' : rank === 'INTERMEDIATE' ? 'Intermediate Guides' : rank === 'JUNIOR' ? 'Junior Guides' : 'Trainees'}
                     </div>
                     <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
                       {guidesInRank.map(g => (
@@ -251,7 +273,7 @@ export default function NewTripPage() {
                 />
               </div>
               <div>Selected guides: <strong>{selectedGuides.length}</strong></div>
-              <div>Guide counts — Senior: {rankCounts['SENIOR']||0}, Intermediate: {rankCounts['INTERMEDIATE']||0}, Junior: {rankCounts['JUNIOR']||0}</div>
+              <div>Guide counts — Senior: {rankCounts['SENIOR']||0}, Intermediate: {rankCounts['INTERMEDIATE']||0}, Junior: {rankCounts['JUNIOR']||0}, Trainee: {rankCounts['TRAINEE']||0}</div>
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <button className="btn ghost" onClick={()=>setStep(1)}>Back</button>
                 <button className="btn" onClick={()=>setStep(3)} disabled={selectedGuides.length===0 || totalPax===0}>Next</button>

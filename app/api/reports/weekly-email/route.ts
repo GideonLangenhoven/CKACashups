@@ -53,14 +53,16 @@ export async function GET(req: NextRequest) {
   const trips = await prisma.trip.findMany({
     where: { tripDate: { gte: start, lte: end } },
     orderBy: { createdAt: 'asc' },
-    include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true }
+    include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true, tripLeader: true }
   });
 
-  // Calculate per-guide statistics (trip counts only)
+  // Calculate per-guide statistics (trip counts and earnings)
   const guideStats = new Map<string, {
     name: string;
     rank: string;
     tripCount: number;
+    totalEarnings: number;
+    tripLeaderCount: number;
   }>();
 
   for (const trip of trips) {
@@ -69,11 +71,17 @@ export async function GET(req: NextRequest) {
         guideStats.set(tg.guide.id, {
           name: tg.guide.name,
           rank: tg.guide.rank,
-          tripCount: 0
+          tripCount: 0,
+          totalEarnings: 0,
+          tripLeaderCount: 0
         });
       }
       const stats = guideStats.get(tg.guide.id)!;
       stats.tripCount++;
+      stats.totalEarnings += parseFloat(tg.feeAmount?.toString() || '0');
+      if (trip.tripLeaderId === tg.guide.id) {
+        stats.tripLeaderCount++;
+      }
     }
   }
 
@@ -163,17 +171,29 @@ export async function GET(req: NextRequest) {
 
   // Guide Summary Table
   const summaryBody: any[] = [
-    [{ text: 'Guide Name', bold: true, fillColor: '#f1f5f9' }, { text: 'Rank', bold: true, fillColor: '#f1f5f9' }, { text: 'Trip Count', bold: true, fillColor: '#f1f5f9' }]
+    [
+      { text: 'Guide Name', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Rank', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Trip Count', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Trip Leader', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Earnings', bold: true, fillColor: '#f1f5f9' }
+    ]
   ];
 
   for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-    summaryBody.push([stats.name, stats.rank, stats.tripCount.toString()]);
+    summaryBody.push([
+      stats.name,
+      stats.rank,
+      stats.tripCount.toString(),
+      stats.tripLeaderCount.toString(),
+      `R ${stats.totalEarnings.toFixed(2)}`
+    ]);
   }
 
   content.push(
     { text: 'Guide Summary', style: 'sectionHeader', margin: [0, 10, 0, 5] },
     {
-      table: { headerRows: 1, widths: ['*', 'auto', 'auto'], body: summaryBody },
+      table: { headerRows: 1, widths: ['*', 'auto', 'auto', 'auto', 'auto'], body: summaryBody },
       layout: {
         hLineWidth: () => 0.5,
         vLineWidth: () => 0,
@@ -328,10 +348,18 @@ export async function GET(req: NextRequest) {
   summaryWs.columns = [
     { header: 'Guide Name', key: 'name', width: 20 },
     { header: 'Rank', key: 'rank', width: 15 },
-    { header: 'Trip Count', key: 'tripCount', width: 12 }
+    { header: 'Trip Count', key: 'tripCount', width: 12 },
+    { header: 'Trip Leader Count', key: 'tripLeaderCount', width: 18 },
+    { header: 'Total Earnings', key: 'totalEarnings', width: 15 }
   ];
   for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-    summaryWs.addRow({ name: stats.name, rank: stats.rank, tripCount: stats.tripCount });
+    summaryWs.addRow({
+      name: stats.name,
+      rank: stats.rank,
+      tripCount: stats.tripCount,
+      tripLeaderCount: stats.tripLeaderCount,
+      totalEarnings: stats.totalEarnings
+    });
   }
 
   // Company Trip Details Sheet

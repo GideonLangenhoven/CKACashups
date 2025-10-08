@@ -50,11 +50,14 @@ export async function POST(req: NextRequest) {
     const user = await getServerSession();
     if (!user?.id) return new Response('Unauthorized', { status: 401 });
     const body = await req.json();
-    const { tripDate, leadName, paxGuideNote, totalPax, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
+    const { tripDate, leadName, paxGuideNote, totalPax, tripLeaderId, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
     if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
 
     const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
     const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
+
+    // Calculate earnings for each guide
+    const { calculateGuideEarnings } = await import('@/lib/guideEarnings');
 
     const trip = await prisma.trip.create({
       data: {
@@ -62,6 +65,7 @@ export async function POST(req: NextRequest) {
         leadName,
         paxGuideNote,
         totalPax,
+        tripLeaderId: tripLeaderId || undefined,
         paymentsMadeYN: !!paymentsMadeYN,
         picsUploadedYN: !!picsUploadedYN,
         tripEmailSentYN: !!tripEmailSentYN,
@@ -74,7 +78,8 @@ export async function POST(req: NextRequest) {
         guides: guides && guides.length ? { create: guides.map((g: any) => {
           const guide = dbGuides.find((x: any) => x.id === g.guideId);
           const paxCount = g.pax || 0;
-          const feeAmount = 0; // Fee rates removed
+          const isTripLeader = g.guideId === tripLeaderId;
+          const feeAmount = calculateGuideEarnings(totalPax || 0, guide.rank, isTripLeader);
           return { guideId: g.guideId, paxCount, feeAmount };
         }) } : undefined,
       }

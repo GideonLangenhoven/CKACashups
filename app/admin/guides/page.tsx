@@ -78,6 +78,7 @@ export default function GuidesPage() {
               <option value="SENIOR">Senior</option>
               <option value="INTERMEDIATE">Intermediate</option>
               <option value="JUNIOR">Junior</option>
+              <option value="TRAINEE">Trainee</option>
             </select>
             <button className="btn" onClick={addGuide} disabled={!name}>Add</button>
           </div>
@@ -98,6 +99,7 @@ export default function GuidesPage() {
                   <option value="SENIOR">Senior</option>
                   <option value="INTERMEDIATE">Intermediate</option>
                   <option value="JUNIOR">Junior</option>
+                  <option value="TRAINEE">Trainee</option>
                 </select>
                 <button className="btn" onClick={()=>updateRank(g.id, editRank)} style={{ marginRight: '0.5rem' }}>Save</button>
                 <button className="btn ghost" onClick={cancelEdit}>Cancel</button>
