@@ -117,7 +117,8 @@ export async function GET(req: NextRequest) {
       parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
       parseFloat(t.payments?.vouchers?.toString() || '0') +
       parseFloat(t.payments?.members?.toString() || '0') +
-      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') +
+      parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
       parseFloat(t.payments?.discountsTotal?.toString() || '0');
   }, 0);
 
@@ -130,7 +131,8 @@ export async function GET(req: NextRequest) {
       parseFloat(trip.payments?.onlineEFTs?.toString() || '0') +
       parseFloat(trip.payments?.vouchers?.toString() || '0') +
       parseFloat(trip.payments?.members?.toString() || '0') +
-      parseFloat(trip.payments?.agentsToInvoice?.toString() || '0') -
+      parseFloat(trip.payments?.agentsToInvoice?.toString() || '0') +
+      parseFloat(trip.payments?.waterPhoneSunblock?.toString() || '0') -
       parseFloat(trip.payments?.discountsTotal?.toString() || '0');
     dailyTotals.set(dateStr, (dailyTotals.get(dateStr) || 0) + total);
   }
@@ -253,7 +255,8 @@ export async function GET(req: NextRequest) {
           parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
           parseFloat(t.payments?.vouchers?.toString() || '0') +
           parseFloat(t.payments?.members?.toString() || '0') +
-          parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+          parseFloat(t.payments?.agentsToInvoice?.toString() || '0') +
+          parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
           parseFloat(t.payments?.discountsTotal?.toString() || '0')
         );
         runningTotal += totalPayments;

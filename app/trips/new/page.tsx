@@ -26,6 +26,7 @@ export default function NewTripPage() {
   const [vouchers, setVouchers] = useState<string>("");
   const [members, setMembers] = useState<string>("");
   const [agentsToInvoice, setAgentsToInvoice] = useState<string>("");
+  const [waterPhoneSunblock, setWaterPhoneSunblock] = useState<string>("");
   const [discounts, setDiscounts] = useState<{amount: string; reason: string}[]>([]);
   const [paymentsMadeYN, setPaymentsMadeYN] = useState<boolean>(false);
   const [picsUploadedYN, setPicsUploadedYN] = useState<boolean>(false);
@@ -156,6 +157,7 @@ export default function NewTripPage() {
         vouchers: parseFloat(vouchers || "0"),
         members: parseFloat(members || "0"),
         agentsToInvoice: parseFloat(agentsToInvoice || "0"),
+        waterPhoneSunblock: parseFloat(waterPhoneSunblock || "0"),
         discountsTotal: parseFloat(discountTotal.toFixed(2))
       },
       discounts
@@ -290,6 +292,12 @@ export default function NewTripPage() {
             <div className="payment-field" style={{ width: '35%' }}>
               <label className="label" style={{ marginBottom: 6, display: 'block' }}>Agents to invoice (R)</label>
               <input className="input" inputMode="decimal" value={agentsToInvoice} onChange={e=>setAgentsToInvoice(e.target.value)} placeholder="Numbers only" />
+            </div>
+          </div>
+          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+            <div className="payment-field" style={{ width: '35%' }}>
+              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Water, Phone Cases & Sunblock (R)</label>
+              <input className="input" inputMode="decimal" value={waterPhoneSunblock} onChange={e=>setWaterPhoneSunblock(e.target.value)} placeholder="Numbers only" />
             </div>
           </div>
           <div className="section-title">Discounts</div>

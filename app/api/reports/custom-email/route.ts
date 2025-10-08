@@ -132,7 +132,8 @@ export async function GET(req: NextRequest) {
         parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
         parseFloat(t.payments?.vouchers?.toString() || '0') +
         parseFloat(t.payments?.members?.toString() || '0') +
-        parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
+        parseFloat(t.payments?.agentsToInvoice?.toString() || '0') +
+        parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
         parseFloat(t.payments?.discountsTotal?.toString() || '0')
       );
       const submittedTime = new Date(t.createdAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false });
