@@ -228,6 +228,34 @@ export default function ReportsPage() {
           )}
         </div>
       </div>
+      <div className="card">
+        <div style={{ marginBottom: 12 }}>
+          <strong style={{ fontSize: '1.1rem' }}>Admin Tools</strong>
+        </div>
+        <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#64748b' }}>
+          Recalculate guide earnings for all existing trips in the database.
+        </p>
+        <button
+          className="btn"
+          onClick={async () => {
+            if (confirm('Recalculate earnings for all trips? This will update guide earnings based on current pax counts and trip leader designations.')) {
+              try {
+                const res = await fetch('/api/admin/recalculate-earnings', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) {
+                  alert(`Success! Updated ${data.updatedGuides} guide assignments across ${data.message}`);
+                } else {
+                  alert('Failed: ' + data.error);
+                }
+              } catch (err) {
+                alert('Error: ' + err);
+              }
+            }
+          }}
+        >
+          🔄 Recalculate All Guide Earnings
+        </button>
+      </div>
     </div>
   );
 }
