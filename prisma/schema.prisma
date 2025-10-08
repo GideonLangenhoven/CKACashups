@@ -45,21 +45,23 @@ enum InviteStatus {
 }
 
 model Guide {
-  id        String   @id @default(cuid())
-  name      String
-  email     String?  @unique
-  rank      GuideRank
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  email      String?  @unique
+  rank       GuideRank
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   tripGuides TripGuide[]
-  user      User?
+  ledTrips   Trip[]   @relation("TripLeader")
+  user       User?
 }
 
 enum GuideRank {
   SENIOR
   INTERMEDIATE
   JUNIOR
+  TRAINEE
 }
 
 model FeeRate {
@@ -88,6 +90,8 @@ model Trip {
   tripEmailSentYN Boolean   @default(false)
   tripReport      String?
   suggestions     String?
+  tripLeaderId    String?
+  tripLeader      Guide?   @relation("TripLeader", fields: [tripLeaderId], references: [id])
   createdById     String
   createdBy       User     @relation("UserTrips", fields: [createdById], references: [id])
   createdAt       DateTime @default(now())
