@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
   const trips = await prisma.trip.findMany({
     where: { tripDate: { gte: start, lte: end } },
     orderBy: { createdAt: 'asc' },
-    include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true }
+    include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true, tripLeader: true }
   });
   // Build PDF with logo
   const { default: PdfPrinter } = await import('pdfmake');
@@ -125,35 +125,53 @@ export async function GET(req: NextRequest) {
   });
 
   // Calculate guide statistics
-  const guideStats = new Map<string, { name: string; rank: string; tripCount: number }>();
+  const guideStats = new Map<string, { name: string; rank: string; tripCount: number; totalEarnings: number; tripLeaderCount: number }>();
   for (const t of trips) {
     for (const tg of t.guides) {
       if (!guideStats.has(tg.guide.id)) {
         guideStats.set(tg.guide.id, {
           name: tg.guide.name,
           rank: tg.guide.rank,
-          tripCount: 0
+          tripCount: 0,
+          totalEarnings: 0,
+          tripLeaderCount: 0
         });
       }
       const stats = guideStats.get(tg.guide.id)!;
       stats.tripCount++;
+      stats.totalEarnings += parseFloat(tg.feeAmount?.toString() || '0');
+      if (t.tripLeaderId === tg.guide.id) {
+        stats.tripLeaderCount++;
+      }
     }
   }
 
   // Guide Summary Table
   if (guideStats.size > 0) {
     const guideSummaryBody: any[] = [
-      [{ text: 'Guide Name', bold: true, fillColor: '#f1f5f9' }, { text: 'Rank', bold: true, fillColor: '#f1f5f9' }, { text: 'Total Trips', bold: true, fillColor: '#f1f5f9' }]
+      [
+        { text: 'Guide Name', bold: true, fillColor: '#f1f5f9' },
+        { text: 'Rank', bold: true, fillColor: '#f1f5f9' },
+        { text: 'Total Trips', bold: true, fillColor: '#f1f5f9' },
+        { text: 'Trip Leader', bold: true, fillColor: '#f1f5f9' },
+        { text: 'Earnings', bold: true, fillColor: '#f1f5f9' }
+      ]
     ];
     for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
-      guideSummaryBody.push([stats.name, stats.rank, stats.tripCount.toString()]);
+      guideSummaryBody.push([
+        stats.name,
+        stats.rank,
+        stats.tripCount.toString(),
+        stats.tripLeaderCount.toString(),
+        `R ${stats.totalEarnings.toFixed(2)}`
+      ]);
     }
     content.push(
       { text: 'Guide Summary', style: 'sectionHeader', margin: [0, 0, 0, 8] },
       {
         table: {
           headerRows: 1,
-          widths: ['*', 'auto', 'auto'],
+          widths: ['*', 'auto', 'auto', 'auto', 'auto'],
           body: guideSummaryBody
         },
         layout: {

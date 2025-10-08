@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     const trips = await prisma.trip.findMany({
       where: { tripDate: { gte: startDate, lte: endDate } },
       orderBy: { createdAt: 'asc' },
-      include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true }
+      include: { payments: true, discounts: true, guides: { include: { guide: true } }, createdBy: true, tripLeader: true }
     });
 
     // Build PDF with logo
