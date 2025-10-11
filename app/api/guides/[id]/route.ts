@@ -41,7 +41,31 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 export async function DELETE(_: NextRequest, { params }: { params: { id: string }}) {
   const session = await getServerSession();
   if (!session || session.role !== 'ADMIN') return new Response('Forbidden', { status: 403 });
-  await prisma.guide.update({ where: { id: params.id }, data: { active: false } });
+
+  // Deactivate guide and clear email so it can be reused
+  await prisma.guide.update({
+    where: { id: params.id },
+    data: {
+      active: false,
+      email: null  // Clear email to allow linking to different guide
+    }
+  });
+
+  // Also deactivate any linked user account
+  const linkedUser = await prisma.user.findFirst({
+    where: { guideId: params.id }
+  });
+
+  if (linkedUser) {
+    await prisma.user.update({
+      where: { id: linkedUser.id },
+      data: {
+        active: false,
+        guideId: null  // Unlink from guide
+      }
+    });
+  }
+
   return new Response(null, { status: 204 });
 }
 

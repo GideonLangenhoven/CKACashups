@@ -28,6 +28,12 @@ export default function GuidesPage() {
   });
 
   async function addGuide() {
+    // Confirmation popup
+    const confirmMessage = `Are you sure you want to add this guide?\n\nName: ${name}\nRank: ${rank}\nEmail: ${email || '(none)'}`;
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
     const res = await fetch('/api/guides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rank, email: email || undefined }) });
     if (res.ok) { setName(""); setEmail(""); mutate(); } else { alert(await res.text()); }
   }
