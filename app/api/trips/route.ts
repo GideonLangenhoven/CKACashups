@@ -56,6 +56,17 @@ export async function POST(req: NextRequest) {
     const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
     const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
 
+    // Validate trip leader can only be SENIOR or INTERMEDIATE
+    if (tripLeaderId) {
+      const tripLeader = await prisma.guide.findUnique({ where: { id: tripLeaderId } });
+      if (!tripLeader) {
+        return new Response('Trip leader not found', { status: 400 });
+      }
+      if (tripLeader.rank !== 'SENIOR' && tripLeader.rank !== 'INTERMEDIATE') {
+        return new Response('Only SENIOR and INTERMEDIATE guides can be trip leaders', { status: 400 });
+      }
+    }
+
     // Calculate earnings for each guide
     const { calculateGuideEarnings } = await import('@/lib/guideEarnings');
 
