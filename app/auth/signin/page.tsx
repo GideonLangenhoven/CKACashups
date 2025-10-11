@@ -98,11 +98,6 @@ export default function SignIn() {
         <button type="submit" className="btn" disabled={submitting} style={{ width: "100%" }}>
           {submitting ? "Signing in..." : "Sign in"}
         </button>
-        <div style={{ marginTop: "1rem", textAlign: "center" }}>
-          <a href="/auth/reset-password-request" style={{ color: "#0066cc", textDecoration: "none", fontSize: "0.9rem" }}>
-            Reset Password
-          </a>
-        </div>
         <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center" }}>
           <img src="/CKAlogo.png" alt="CKA Logo" style={{ height: "60px", width: "auto" }} />
         </div>
