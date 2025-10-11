@@ -90,22 +90,28 @@ export async function createUserSession(email: string, name?: string): Promise<S
     }
   });
 
-  // If not found by email, try by name
+  // If not found by email and name is provided, try by name
+  // IMPORTANT: Only link to guide if email is not already set on another guide
   if (!matchingGuide && normalizedName) {
-    matchingGuide = await prisma.guide.findFirst({
+    const guideByName = await prisma.guide.findFirst({
       where: {
         name: { equals: normalizedName, mode: 'insensitive' },
         active: true
       }
     });
-  }
 
-  // If guide found, update their email if not set
-  if (matchingGuide && !matchingGuide.email) {
-    matchingGuide = await prisma.guide.update({
-      where: { id: matchingGuide.id },
-      data: { email: normalizedEmail }
-    });
+    // Only use this guide if they don't have an email set, or if their email matches
+    if (guideByName && (!guideByName.email || guideByName.email === normalizedEmail)) {
+      matchingGuide = guideByName;
+
+      // Set the email on the guide if not already set
+      if (!matchingGuide.email) {
+        matchingGuide = await prisma.guide.update({
+          where: { id: matchingGuide.id },
+          data: { email: normalizedEmail }
+        });
+      }
+    }
   }
 
   // Determine the final name to use - use exact guide name if available
