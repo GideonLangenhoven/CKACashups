@@ -20,8 +20,19 @@ export async function createUserSession(email: string, name?: string): Promise<S
 
   if (user && user.active) {
     // Verify name matches for existing users
-    if (user.name && normalizedName && user.name.toLowerCase() !== normalizedName.toLowerCase()) {
-      throw new Error('Incorrect name for this email address');
+    // Allow partial name matches (e.g., "Josh" matches "Josh T", "Joshua" matches "Joshua Traut")
+    if (user.name && normalizedName) {
+      const storedName = user.name.toLowerCase();
+      const enteredName = normalizedName.toLowerCase();
+
+      // Check if names match exactly, or if one contains the other
+      const namesMatch = storedName === enteredName ||
+                        storedName.includes(enteredName) ||
+                        enteredName.includes(storedName);
+
+      if (!namesMatch) {
+        throw new Error(`Incorrect name for this email address. Please use: ${user.name}`);
+      }
     }
 
     // Log the sign-in
