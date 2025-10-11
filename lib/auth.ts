@@ -32,33 +32,25 @@ export async function createUserSession(email: string, name?: string): Promise<S
         });
       }
 
-      // For guides, verify the entered name matches the guide name
+      // For guides, require exact name match to avoid conflicts (e.g., "Josh" vs "Josh T")
       if (normalizedName) {
         const guideName = user.guide.name.toLowerCase();
         const enteredName = normalizedName.toLowerCase();
 
-        // Check if names match exactly, or if one contains the other
-        const namesMatch = guideName === enteredName ||
-                          guideName.includes(enteredName) ||
-                          enteredName.includes(guideName);
-
-        if (!namesMatch) {
-          throw new Error(`Incorrect name for this email address. Please use: ${user.guide.name}`);
+        // Require exact match for guides
+        if (guideName !== enteredName) {
+          throw new Error(`Incorrect name for this email address. Please use exactly: ${user.guide.name}`);
         }
       }
     } else {
-      // For non-guide users, verify name matches
+      // For non-guide users, also require exact name match for consistency
       if (user.name && normalizedName) {
         const storedName = user.name.toLowerCase();
         const enteredName = normalizedName.toLowerCase();
 
-        // Check if names match exactly, or if one contains the other
-        const namesMatch = storedName === enteredName ||
-                          storedName.includes(enteredName) ||
-                          enteredName.includes(storedName);
-
-        if (!namesMatch) {
-          throw new Error(`Incorrect name for this email address. Please use: ${user.name}`);
+        // Require exact match
+        if (storedName !== enteredName) {
+          throw new Error(`Incorrect name for this email address. Please use exactly: ${user.name}`);
         }
       }
     }
