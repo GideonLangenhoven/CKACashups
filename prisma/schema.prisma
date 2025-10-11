@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  // Force regeneration v2
+  // Force regeneration v3 - password fields removed
 }
 
 datasource db {

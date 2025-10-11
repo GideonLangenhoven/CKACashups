@@ -10,13 +10,8 @@ export default async function TripsListPage() {
   // Get user's guide ID if they are linked to a guide
   const userWithGuide = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { guideId: true, role: true, needsPasswordReset: true }
+    select: { guideId: true, role: true }
   });
-
-  // Redirect to set password if needed
-  if (userWithGuide?.needsPasswordReset) {
-    redirect("/auth/set-password");
-  }
 
   // Redirect guides to earnings page
   if (userWithGuide?.guideId && userWithGuide.role !== 'ADMIN') {
