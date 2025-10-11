@@ -11,8 +11,13 @@ const FLAT_RATES: Record<GuideRank, number> = {
   SENIOR: 730
 };
 
-// Trip leader flat rate (regardless of rank)
-const TRIP_LEADER_RATE = 810;
+// Trip leader flat rates by rank
+const TRIP_LEADER_RATES: Record<GuideRank, number> = {
+  TRAINEE: 810,
+  JUNIOR: 810,
+  INTERMEDIATE: 700,  // Special rate for intermediate trip leaders
+  SENIOR: 810
+};
 
 /**
  * Calculate earnings for a guide on a trip
@@ -26,9 +31,9 @@ export function calculateGuideEarnings(
   rank: GuideRank,
   isTripLeader: boolean = false
 ): number {
-  // If trip leader, return trip leader rate (not their rank rate)
+  // If trip leader, return rank-specific trip leader rate
   if (isTripLeader) {
-    return TRIP_LEADER_RATE;
+    return TRIP_LEADER_RATES[rank] || 810;
   }
 
   // Otherwise return their rank's flat rate
