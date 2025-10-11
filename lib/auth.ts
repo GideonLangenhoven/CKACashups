@@ -16,22 +16,50 @@ export async function createUserSession(email: string, name?: string): Promise<S
   // Allow empty name; will default to email local part for new users
 
   // Check if user exists and is active
-  let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  let user = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    include: { guide: true }
+  });
 
   if (user && user.active) {
-    // Verify name matches for existing users
-    // Allow partial name matches (e.g., "Josh" matches "Josh T", "Joshua" matches "Joshua Traut")
-    if (user.name && normalizedName) {
-      const storedName = user.name.toLowerCase();
-      const enteredName = normalizedName.toLowerCase();
+    // If user is linked to a guide, ensure name matches the guide's name exactly
+    if (user.guide) {
+      // Sync user name to guide name if different
+      if (user.name !== user.guide.name) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { name: user.guide.name }
+        });
+      }
 
-      // Check if names match exactly, or if one contains the other
-      const namesMatch = storedName === enteredName ||
-                        storedName.includes(enteredName) ||
-                        enteredName.includes(storedName);
+      // For guides, verify the entered name matches the guide name
+      if (normalizedName) {
+        const guideName = user.guide.name.toLowerCase();
+        const enteredName = normalizedName.toLowerCase();
 
-      if (!namesMatch) {
-        throw new Error(`Incorrect name for this email address. Please use: ${user.name}`);
+        // Check if names match exactly, or if one contains the other
+        const namesMatch = guideName === enteredName ||
+                          guideName.includes(enteredName) ||
+                          enteredName.includes(guideName);
+
+        if (!namesMatch) {
+          throw new Error(`Incorrect name for this email address. Please use: ${user.guide.name}`);
+        }
+      }
+    } else {
+      // For non-guide users, verify name matches
+      if (user.name && normalizedName) {
+        const storedName = user.name.toLowerCase();
+        const enteredName = normalizedName.toLowerCase();
+
+        // Check if names match exactly, or if one contains the other
+        const namesMatch = storedName === enteredName ||
+                          storedName.includes(enteredName) ||
+                          enteredName.includes(storedName);
+
+        if (!namesMatch) {
+          throw new Error(`Incorrect name for this email address. Please use: ${user.name}`);
+        }
       }
     }
 
@@ -59,16 +87,22 @@ export async function createUserSession(email: string, name?: string): Promise<S
     .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
   const isAdmin = adminEmails.includes(normalizedEmail);
 
-  // Try to find matching guide by name or email
+  // Try to find matching guide by email first, then by name
   let matchingGuide = null;
-  if (normalizedName) {
-    // Try exact name match first
+
+  // First, try to find guide by email (most reliable)
+  matchingGuide = await prisma.guide.findFirst({
+    where: {
+      email: normalizedEmail,
+      active: true
+    }
+  });
+
+  // If not found by email, try by name
+  if (!matchingGuide && normalizedName) {
     matchingGuide = await prisma.guide.findFirst({
       where: {
-        OR: [
-          { name: { equals: normalizedName, mode: 'insensitive' } },
-          { email: normalizedEmail }
-        ],
+        name: { equals: normalizedName, mode: 'insensitive' },
         active: true
       }
     });
@@ -76,15 +110,17 @@ export async function createUserSession(email: string, name?: string): Promise<S
 
   // If guide found, update their email if not set
   if (matchingGuide && !matchingGuide.email) {
-    await prisma.guide.update({
+    matchingGuide = await prisma.guide.update({
       where: { id: matchingGuide.id },
       data: { email: normalizedEmail }
     });
   }
 
-  // Allow anyone to sign in - create user if they don't exist
+  // Determine the final name to use - use exact guide name if available
   const isNewUser = !user;
-  const finalName = normalizedName || normalizedEmail.split('@')[0];
+  const finalName = matchingGuide?.name || normalizedName || normalizedEmail.split('@')[0];
+
+  // Create or update user account
   user = await prisma.user.upsert({
     where: { email: normalizedEmail },
     create: {
@@ -96,6 +132,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
     update: {
       role: isAdmin ? 'ADMIN' : undefined,
       active: true,
+      name: matchingGuide?.name || undefined,  // Update name to match guide
       guideId: matchingGuide?.id || undefined
     }
   });
