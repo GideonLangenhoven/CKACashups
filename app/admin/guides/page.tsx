@@ -11,6 +11,8 @@ export default function GuidesPage() {
   const [email, setEmail] = useState("");
   const [rank, setRank] = useState("SENIOR");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const [editRank, setEditRank] = useState("");
 
   // Sort guides by rank: SENIOR, INTERMEDIATE, JUNIOR, TRAINEE
@@ -38,11 +40,15 @@ export default function GuidesPage() {
     if (res.ok) mutate(); else alert(await res.text());
   }
 
-  async function updateRank(id: string, newRank: string) {
+  async function updateGuide(id: string) {
     const res = await fetch(`/api/guides/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rank: newRank })
+      body: JSON.stringify({
+        name: editName,
+        email: editEmail || undefined,
+        rank: editRank
+      })
     });
     if (res.ok) {
       setEditingId(null);
@@ -52,13 +58,17 @@ export default function GuidesPage() {
     }
   }
 
-  function startEdit(id: string, currentRank: string) {
-    setEditingId(id);
-    setEditRank(currentRank);
+  function startEdit(guide: any) {
+    setEditingId(guide.id);
+    setEditName(guide.name);
+    setEditEmail(guide.email || "");
+    setEditRank(guide.rank);
   }
 
   function cancelEdit() {
     setEditingId(null);
+    setEditName("");
+    setEditEmail("");
     setEditRank("");
   }
 
@@ -100,27 +110,47 @@ export default function GuidesPage() {
       </div>
       <div className="card">
         {guides.map((g: any) => (
-          <div className="row" key={g.id} style={{ justifyContent: 'space-between', padding: '0.5rem 0', alignItems: 'center' }}>
-            <div style={{ flex: 1 }}>
-              {g.name}
-            </div>
+          <div key={g.id} style={{ padding: '0.5rem 0', borderBottom: '1px solid #eee' }}>
             {editingId === g.id ? (
-              <>
-                <select className="input" value={editRank} onChange={e=>setEditRank(e.target.value)} style={{ width: '150px', marginRight: '0.5rem' }}>
-                  <option value="SENIOR">Senior</option>
-                  <option value="INTERMEDIATE">Intermediate</option>
-                  <option value="JUNIOR">Junior</option>
-                  <option value="TRAINEE">Trainee</option>
-                </select>
-                <button className="btn" onClick={()=>updateRank(g.id, editRank)} style={{ marginRight: '0.5rem' }}>Save</button>
-                <button className="btn ghost" onClick={cancelEdit}>Cancel</button>
-              </>
+              <div className="stack" style={{ gap: '0.5rem' }}>
+                <div className="row" style={{ gap: '0.5rem' }}>
+                  <input
+                    className="input"
+                    placeholder="Name"
+                    value={editName}
+                    onChange={e=>setEditName(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    className="input"
+                    type="email"
+                    placeholder="Email (optional)"
+                    value={editEmail}
+                    onChange={e=>setEditEmail(e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                  <select className="input" value={editRank} onChange={e=>setEditRank(e.target.value)} style={{ width: '150px' }}>
+                    <option value="SENIOR">Senior</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="JUNIOR">Junior</option>
+                    <option value="TRAINEE">Trainee</option>
+                  </select>
+                </div>
+                <div className="row" style={{ gap: '0.5rem', justifyContent: 'flex-end' }}>
+                  <button className="btn" onClick={()=>updateGuide(g.id)}>Save Changes</button>
+                  <button className="btn ghost" onClick={cancelEdit}>Cancel</button>
+                </div>
+              </div>
             ) : (
-              <>
+              <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ flex: 1 }}>
+                  <div><strong>{g.name}</strong></div>
+                  {g.email && <div style={{ fontSize: '0.85rem', color: '#666' }}>{g.email}</div>}
+                </div>
                 <span style={{ marginRight: '1rem', color: '#666' }}>{g.rank}</span>
-                <button className="btn" onClick={()=>startEdit(g.id, g.rank)} style={{ marginRight: '0.5rem' }}>Change Rank</button>
+                <button className="btn" onClick={()=>startEdit(g)} style={{ marginRight: '0.5rem' }}>Edit</button>
                 <button className="btn ghost deactivate-btn" onClick={()=>deactivate(g.id, g.name)}>Deactivate</button>
-              </>
+              </div>
             )}
           </div>
         ))}
