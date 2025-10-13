@@ -19,11 +19,23 @@ export async function POST(req: NextRequest) {
     // If email provided, check if guide with this email already exists
     if (email) {
       const normalizedEmail = email.toLowerCase().trim();
+
+      // Check for ANY guide (active or inactive) with this email
       const existingGuide = await prisma.guide.findFirst({
-        where: { email: normalizedEmail, active: true }
+        where: { email: normalizedEmail }
       });
+
       if (existingGuide) {
-        return new Response(`A guide with email ${email} already exists: ${existingGuide.name}`, { status: 400 });
+        if (existingGuide.active) {
+          // Active guide with this email already exists
+          return new Response(`A guide with email ${email} already exists: ${existingGuide.name}`, { status: 400 });
+        } else {
+          // Inactive guide with this email - clear it so we can reuse
+          await prisma.guide.update({
+            where: { id: existingGuide.id },
+            data: { email: null }
+          });
+        }
       }
     }
 
