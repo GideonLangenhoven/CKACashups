@@ -100,37 +100,68 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string }}) {
-  const session = await getServerSession();
-  if (!session || session.role !== 'ADMIN') return new Response('Forbidden', { status: 403 });
+  try {
+    const session = await getServerSession();
+    if (!session || session.role !== 'ADMIN') return new Response('Forbidden', { status: 403 });
 
-  // Deactivate guide and clear email so it can be reused
-  await prisma.guide.update({
-    where: { id: params.id },
-    data: {
-      active: false,
-      email: null  // Clear email to allow linking to different guide
-    }
-  });
-
-  // Also deactivate any linked user account and clear email
-  const linkedUser = await prisma.user.findFirst({
-    where: { guideId: params.id }
-  });
-
-  if (linkedUser) {
-    // Generate a unique placeholder email to free up the original email
-    const placeholderEmail = `deactivated_${linkedUser.id}@placeholder.local`;
-
-    await prisma.user.update({
-      where: { id: linkedUser.id },
-      data: {
-        active: false,
-        guideId: null,  // Unlink from guide
-        email: placeholderEmail  // Replace email with placeholder to free it up
-      }
+    // Check if guide has any trip associations
+    const tripGuides = await prisma.tripGuide.findMany({
+      where: { guideId: params.id }
     });
-  }
 
-  return new Response(null, { status: 204 });
+    const ledTrips = await prisma.trip.findMany({
+      where: { tripLeaderId: params.id }
+    });
+
+    // If guide has trip history, prevent deletion
+    if (tripGuides.length > 0 || ledTrips.length > 0) {
+      return new Response(
+        `Cannot delete guide: they have ${tripGuides.length + ledTrips.length} trip(s) in the system. Please deactivate instead or remove trip associations first.`,
+        { status: 400 }
+      );
+    }
+
+    // Find linked user account
+    const linkedUser = await prisma.user.findFirst({
+      where: { guideId: params.id }
+    });
+
+    // If user has created trips, invites, or audit logs, prevent deletion
+    if (linkedUser) {
+      const userTrips = await prisma.trip.count({
+        where: { createdById: linkedUser.id }
+      });
+
+      const userInvites = await prisma.invite.count({
+        where: { invitedById: linkedUser.id }
+      });
+
+      const userAuditLogs = await prisma.auditLog.count({
+        where: { actorUserId: linkedUser.id }
+      });
+
+      if (userTrips > 0 || userInvites > 0 || userAuditLogs > 0) {
+        return new Response(
+          `Cannot delete user: they have ${userTrips} trip(s), ${userInvites} invite(s), or ${userAuditLogs} audit log(s). Please deactivate instead.`,
+          { status: 400 }
+        );
+      }
+
+      // Safe to delete user
+      await prisma.user.delete({
+        where: { id: linkedUser.id }
+      });
+    }
+
+    // Safe to delete guide
+    await prisma.guide.delete({
+      where: { id: params.id }
+    });
+
+    return new Response(null, { status: 204 });
+  } catch (error: any) {
+    console.error('Error deleting guide:', error);
+    return new Response(error.message || 'Failed to delete guide', { status: 500 });
+  }
 }
 
