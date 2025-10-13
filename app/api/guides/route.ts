@@ -70,40 +70,64 @@ export async function POST(req: NextRequest) {
     if (email) {
       const normalizedEmail = email.toLowerCase().trim();
 
-      // Check if user already exists
+      // After cleanup, check if user still exists
       const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
       if (!existingUser) {
-        // Create user account linked to this guide
-        await prisma.user.create({
-          data: {
-            email: normalizedEmail,
-            name: name,
-            role: 'USER',
-            guideId: guide.id
-          }
-        });
+        // No user exists - create new one
+        try {
+          await prisma.user.create({
+            data: {
+              email: normalizedEmail,
+              name: name,
+              role: 'USER',
+              guideId: guide.id
+            }
+          });
+        } catch (userCreateError: any) {
+          console.error('Error creating user:', userCreateError);
+          // Don't fail guide creation if user creation fails
+          // The guide is already created, just log the error
+        }
       } else if (!existingUser.guideId || !existingUser.active) {
-        // Link existing user to guide (or reactivate if deactivated)
-        await prisma.user.update({
-          where: { id: existingUser.id },
-          data: {
-            guideId: guide.id,
-            name: name,
-            active: true,  // Reactivate if was deactivated
-            email: normalizedEmail  // Restore proper email if was placeholder
-          }
-        });
-      } else {
-        // User already linked to another ACTIVE guide
-        return new Response(`Email ${email} is already linked to another active guide`, { status: 400 });
+        // User exists but not linked or inactive - reactivate and link
+        try {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: {
+              guideId: guide.id,
+              name: name,
+              active: true,
+              email: normalizedEmail
+            }
+          });
+        } catch (userUpdateError: any) {
+          console.error('Error updating user:', userUpdateError);
+        }
+      } else if (existingUser.guideId !== guide.id) {
+        // User already linked to a DIFFERENT active guide
+        console.warn(`Email ${email} is already linked to guide ${existingUser.guideId}`);
+        // Don't fail - guide is already created
       }
     }
 
     return Response.json({ guide });
   } catch (error: any) {
     console.error('Error creating guide:', error);
-    return new Response(error.message || 'Failed to create guide', { status: 500 });
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta,
+      stack: error.stack
+    });
+    return new Response(JSON.stringify({
+      error: error.message || 'Failed to create guide',
+      details: error.code || 'UNKNOWN_ERROR',
+      meta: error.meta
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 
