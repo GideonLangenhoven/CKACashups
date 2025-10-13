@@ -9,113 +9,113 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!session || session.role !== 'ADMIN') return new Response('Forbidden', { status: 403 });
     const body = await req.json();
     const { name, email, rank, active } = body;
+    const normalizedEmail = typeof email === 'string' && email.trim().length > 0
+      ? email.toLowerCase().trim()
+      : null;
 
-  // If email provided, check if guide with this email already exists
-  if (email) {
-    const normalizedEmail = email.toLowerCase().trim();
+    // If email provided, check if guide with this email already exists
+    if (normalizedEmail) {
+      // Check for ALL guides (active or inactive) with this email, excluding current guide
+      const existingGuides = await prisma.guide.findMany({
+        where: {
+          email: normalizedEmail,
+          id: { not: params.id }  // Exclude the guide we're updating
+        }
+      });
 
-    // Check for ALL guides (active or inactive) with this email, excluding current guide
-    const existingGuides = await prisma.guide.findMany({
-      where: {
-        email: normalizedEmail,
-        id: { not: params.id }  // Exclude the guide we're updating
-      }
-    });
+      if (existingGuides.length > 0) {
+        // Check if any ACTIVE guide has this email
+        const activeGuide = existingGuides.find(g => g.active);
+        if (activeGuide) {
+          return new Response(`A guide with email ${email} already exists: ${activeGuide.name}`, { status: 400 });
+        }
 
-    if (existingGuides.length > 0) {
-      // Check if any ACTIVE guide has this email
-      const activeGuide = existingGuides.find(g => g.active);
-      if (activeGuide) {
-        return new Response(`A guide with email ${email} already exists: ${activeGuide.name}`, { status: 400 });
-      }
-
-      // Clear email from ALL inactive guides
-      for (const guide of existingGuides) {
-        await prisma.guide.update({
-          where: { id: guide.id },
-          data: { email: null }
-        });
-      }
-    }
-
-    // Also clear this email from any existing users
-    const existingUsers = await prisma.user.findMany({
-      where: { email: normalizedEmail }
-    });
-
-    for (const user of existingUsers) {
-      // If user is inactive or not linked to a guide, clear/delete them
-      if (!user.active || !user.guideId) {
-        const tripCount = await prisma.trip.count({ where: { createdById: user.id } });
-        if (tripCount === 0) {
-          await prisma.user.delete({ where: { id: user.id } });
-        } else {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { email: `placeholder_${user.id}@removed.local`, guideId: null }
+        // Clear email from ALL inactive guides
+        for (const guide of existingGuides) {
+          await prisma.guide.update({
+            where: { id: guide.id },
+            data: { email: null }
           });
         }
       }
+
+      // Also clear this email from any existing users
+      const existingUsers = await prisma.user.findMany({
+        where: { email: normalizedEmail }
+      });
+
+      for (const user of existingUsers) {
+        // If user is inactive or not linked to a guide, clear/delete them
+        if (!user.active || !user.guideId) {
+          const tripCount = await prisma.trip.count({ where: { createdById: user.id } });
+          if (tripCount === 0) {
+            await prisma.user.delete({ where: { id: user.id } });
+          } else {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { email: `placeholder_${user.id}@removed.local`, guideId: null }
+            });
+          }
+        }
+      }
     }
-  }
 
-  // Update the guide
-  const guide = await prisma.guide.update({
-    where: { id: params.id },
-    data: {
-      name,
-      email: email || null,
-      rank,
-      active
-    }
-  });
-
-  // If there's a linked user account, update their credentials too
-  const linkedUser = await prisma.user.findFirst({
-    where: { guideId: params.id }
-  });
-
-  if (linkedUser) {
-    await prisma.user.update({
-      where: { id: linkedUser.id },
+    // Update the guide
+    const guide = await prisma.guide.update({
+      where: { id: params.id },
       data: {
-        name: name,
-        email: email ? email.toLowerCase().trim() : linkedUser.email
+        name,
+        email: normalizedEmail,
+        rank,
+        active
       }
     });
-  } else if (email) {
-    // No linked user but email was provided - create or link a user account
-    const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-    if (!existingUser) {
-      // Create new user account linked to this guide
-      await prisma.user.create({
-        data: {
-          email: normalizedEmail,
-          name: name,
-          role: 'USER',
-          guideId: guide.id
-        }
-      });
-    } else if (!existingUser.guideId || !existingUser.active) {
-      // Link existing user to guide (or reactivate if deactivated)
+    // If there's a linked user account, update their credentials too
+    const linkedUser = await prisma.user.findFirst({
+      where: { guideId: params.id }
+    });
+
+    if (linkedUser) {
       await prisma.user.update({
-        where: { id: existingUser.id },
+        where: { id: linkedUser.id },
         data: {
-          guideId: guide.id,
           name: name,
-          active: true,
-          email: normalizedEmail
+          email: normalizedEmail ?? linkedUser.email
         }
       });
-    } else {
-      // User already linked to another ACTIVE guide
-      return new Response(`Email ${email} is already linked to another active guide`, { status: 400 });
-    }
-  }
+    } else if (normalizedEmail) {
+      // No linked user but email was provided - create or link a user account
+      const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
-  return Response.json({ guide });
+      if (!existingUser) {
+        // Create new user account linked to this guide
+        await prisma.user.create({
+          data: {
+            email: normalizedEmail,
+            name: name,
+            role: 'USER',
+            guideId: guide.id
+          }
+        });
+      } else if (!existingUser.guideId || !existingUser.active) {
+        // Link existing user to guide (or reactivate if deactivated)
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            guideId: guide.id,
+            name: name,
+            active: true,
+            email: normalizedEmail
+          }
+        });
+      } else {
+        // User already linked to another ACTIVE guide
+        return new Response(`Email ${email} is already linked to another active guide`, { status: 400 });
+      }
+    }
+
+    return Response.json({ guide });
   } catch (error: any) {
     console.error('Error updating guide:', error);
     return new Response(error.message || 'Failed to update guide', { status: 500 });
@@ -187,4 +187,3 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     return new Response(error.message || 'Failed to delete guide', { status: 500 });
   }
 }
-

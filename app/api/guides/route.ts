@@ -12,15 +12,17 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession();
     if (!session || session.role !== 'ADMIN') return new Response('Forbidden', { status: 403 });
-    const body = await req.json();
+  	const body = await req.json();
     const { name, rank, email } = body;
     if (!name || !rank) return new Response('Name and rank required', { status: 400 });
+    const normalizedEmail = typeof email === 'string' && email.trim().length > 0
+      ? email.toLowerCase().trim()
+      : null;
 
     console.log(`[Guide Create] Starting creation for: ${name}, rank: ${rank}, email: ${email || 'none'}`);
 
     // If email provided, check if guide with this email already exists
-    if (email) {
-      const normalizedEmail = email.toLowerCase().trim();
+    if (normalizedEmail) {
       console.log(`[Guide Create] Checking for existing email: ${normalizedEmail}`);
 
       try {
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
     console.log(`[Guide Create] Creating guide...`);
     let guide;
     try {
-      guide = await prisma.guide.create({ data: { name, rank, email: email || null } });
+      guide = await prisma.guide.create({ data: { name, rank, email: normalizedEmail } });
       console.log(`[Guide Create] Guide created successfully: ${guide.id}`);
     } catch (createError: any) {
       console.error('[Guide Create] Guide creation error:', createError);
@@ -104,9 +106,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Auto-create user account for this guide if email provided
-    if (email) {
-      const normalizedEmail = email.toLowerCase().trim();
-
+    if (normalizedEmail) {
       // After cleanup, check if user still exists
       const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
 
@@ -167,4 +167,3 @@ export async function POST(req: NextRequest) {
     });
   }
 }
-
