@@ -51,17 +51,21 @@ export async function DELETE(_: NextRequest, { params }: { params: { id: string 
     }
   });
 
-  // Also deactivate any linked user account
+  // Also deactivate any linked user account and clear email
   const linkedUser = await prisma.user.findFirst({
     where: { guideId: params.id }
   });
 
   if (linkedUser) {
+    // Generate a unique placeholder email to free up the original email
+    const placeholderEmail = `deactivated_${linkedUser.id}@placeholder.local`;
+
     await prisma.user.update({
       where: { id: linkedUser.id },
       data: {
         active: false,
-        guideId: null  // Unlink from guide
+        guideId: null,  // Unlink from guide
+        email: placeholderEmail  // Replace email with placeholder to free it up
       }
     });
   }
