@@ -18,16 +18,14 @@ export default async function TripsListPage() {
     redirect("/earnings");
   }
 
-  const where: any = {};
-
-  // If admin, show all trips
-  // Otherwise, show trips where user created OR was a guide
-  if (userWithGuide?.role !== 'ADMIN') {
-    where.OR = [
+  // "My Trips" shows only trips where the user created OR was a guide
+  // This applies to ALL users including admins
+  const where: any = {
+    OR: [
       { createdById: user.id },
       ...(userWithGuide?.guideId ? [{ guides: { some: { guideId: userWithGuide.guideId } } }] : [])
-    ];
-  }
+    ]
+  };
 
   const trips = await prisma.trip.findMany({
     where,
