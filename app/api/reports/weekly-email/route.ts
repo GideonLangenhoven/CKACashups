@@ -24,20 +24,34 @@ function parseWeek(week: string) {
 }
 
 function getPreviousWeek(): string {
-  // Calculate the previous week (7 days ago)
+  // Calculate Monday-Sunday of the previous week
   const now = new Date();
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const jan1 = new Date(Date.UTC(sevenDaysAgo.getUTCFullYear(), 0, 1));
+  // Get current day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+  const currentDayOfWeek = now.getDay();
+
+  // Calculate days to subtract to get to last week's Monday
+  // If today is Sunday (0), go back 6 days to previous Monday
+  // If today is Monday (1), go back 7 days to previous Monday
+  // If today is Tuesday (2), go back 8 days to previous Monday, etc.
+  const daysToLastMonday = currentDayOfWeek === 0 ? 6 : (currentDayOfWeek + 6);
+
+  // Get last week's Monday
+  const lastMonday = new Date(now);
+  lastMonday.setDate(now.getDate() - daysToLastMonday);
+  lastMonday.setHours(0, 0, 0, 0);
+
+  // Calculate ISO week number for last Monday
+  const jan1 = new Date(Date.UTC(lastMonday.getFullYear(), 0, 1));
   const dayOfWeek = jan1.getUTCDay();
   const daysToMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
-  const week1Start = new Date(Date.UTC(sevenDaysAgo.getUTCFullYear(), 0, 1 + daysToMonday));
+  const week1Start = new Date(Date.UTC(lastMonday.getFullYear(), 0, 1 + daysToMonday));
 
-  const diffMs = sevenDaysAgo.getTime() - week1Start.getTime();
+  const diffMs = lastMonday.getTime() - week1Start.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const weekNum = Math.floor(diffDays / 7) + 1;
 
-  return `${sevenDaysAgo.getUTCFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+  return `${lastMonday.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
 }
 
 export async function GET(req: NextRequest) {
