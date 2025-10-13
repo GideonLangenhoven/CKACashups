@@ -9,6 +9,102 @@ export async function GET(_: NextRequest, { params }: { params: { id: string }})
   return Response.json({ trip });
 }
 
+export async function PUT(req: NextRequest, { params }: { params: { id: string }}) {
+  try {
+    const user = await getServerSession();
+    if (!user?.id) return new Response('Unauthorized', { status: 401 });
+
+    const trip = await prisma.trip.findUnique({
+      where: { id: params.id },
+      include: { payments: true, discounts: true, guides: { include: { guide: true } } }
+    });
+
+    if (!trip) return new Response('Not found', { status: 404 });
+
+    // Check if user can edit (admin or trip creator)
+    const canEdit = user.role === 'ADMIN' || user.id === trip.createdById;
+    if (!canEdit) return new Response('Forbidden', { status: 403 });
+
+    const body = await req.json();
+    const { tripDate, leadName, paxGuideNote, totalPax, tripLeaderId, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
+
+    if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
+
+    const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
+    const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
+
+    // Validate trip leader can only be SENIOR or INTERMEDIATE
+    if (tripLeaderId) {
+      const tripLeader = await prisma.guide.findUnique({ where: { id: tripLeaderId } });
+      if (!tripLeader) {
+        return new Response('Trip leader not found', { status: 400 });
+      }
+      if (tripLeader.rank !== 'SENIOR' && tripLeader.rank !== 'INTERMEDIATE') {
+        return new Response('Only SENIOR and INTERMEDIATE guides can be trip leaders', { status: 400 });
+      }
+    }
+
+    // Calculate earnings for each guide
+    const { calculateGuideEarnings } = await import('@/lib/guideEarnings');
+
+    // Delete existing related records
+    await prisma.tripGuide.deleteMany({ where: { tripId: params.id } });
+    await prisma.discountLine.deleteMany({ where: { tripId: params.id } });
+    if (trip.payments) {
+      await prisma.paymentBreakdown.delete({ where: { id: trip.payments.id } });
+    }
+
+    // Update trip with new data
+    const updated = await prisma.trip.update({
+      where: { id: params.id },
+      data: {
+        tripDate: new Date(tripDate),
+        leadName,
+        paxGuideNote,
+        totalPax,
+        tripLeaderId: tripLeaderId || null,
+        paymentsMadeYN: !!paymentsMadeYN,
+        picsUploadedYN: !!picsUploadedYN,
+        tripEmailSentYN: !!tripEmailSentYN,
+        tripReport,
+        suggestions,
+        status: status || trip.status,
+        payments: payments ? { create: payments } : undefined,
+        discounts: discounts && discounts.length ? { create: discounts.map((d: any) => ({ amount: d.amount, reason: d.reason })) } : undefined,
+        guides: guides && guides.length ? { create: guides.map((g: any) => {
+          const guide = dbGuides.find((x: any) => x.id === g.guideId);
+          if (!guide) throw new Error(`Guide not found: ${g.guideId}`);
+          const paxCount = g.pax || 0;
+          const isTripLeader = g.guideId === tripLeaderId;
+          const feeAmount = calculateGuideEarnings(totalPax || 0, guide.rank, isTripLeader);
+          return { guideId: g.guideId, paxCount, feeAmount };
+        }) } : undefined,
+      },
+      include: { payments: true, discounts: true, guides: { include: { guide: true } } }
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        entityType: 'Trip',
+        entityId: trip.id,
+        action: 'UPDATE',
+        beforeJSON: trip as any,
+        afterJSON: updated as any,
+        actorUserId: user.id
+      }
+    });
+
+    logEvent('trip_updated', { tripId: trip.id, userId: user.id, leadName });
+    return Response.json({ trip: updated });
+  } catch (error: any) {
+    console.error('Error updating trip:', error);
+    return new Response(JSON.stringify({ error: error.message, details: error.toString() }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string }}) {
   const user = await getServerSession();
   if (!user?.id) return new Response('Unauthorized', { status: 401 });

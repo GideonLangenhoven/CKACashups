@@ -1,21 +1,32 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { getServerSession } from "@/lib/session";
+import Link from "next/link";
 
 export default async function TripDetail({ params }: { params: { id: string }}) {
+  const session = await getServerSession();
   const trip = await prisma.trip.findUnique({
     where: { id: params.id },
     include: {
       payments: true,
       discounts: true,
-      guides: { include: { guide: true } }
+      guides: { include: { guide: true } },
+      tripLeader: true
     }
   });
   if (!trip) return notFound();
+
+  // Check if user can edit (admin or trip creator)
+  const canEdit = session?.role === 'ADMIN' || session?.id === trip.createdById;
+
   return (
     <div className="stack">
       <h2>Trip on {new Date(trip.tripDate).toLocaleDateString()}</h2>
-      <div className="row" style={{ marginBottom: 8 }}>
+      <div className="row" style={{ marginBottom: 8, gap: '0.5rem' }}>
         <a className="btn" href={`/api/trips/${trip.id}/pdf`}>Download PDF</a>
+        {canEdit && (
+          <Link className="btn" href={`/trips/${trip.id}/edit`}>Edit Trip</Link>
+        )}
       </div>
       <div className="card">
         <div>Lead: {trip.leadName}</div>
