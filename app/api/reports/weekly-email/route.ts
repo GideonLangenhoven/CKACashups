@@ -23,18 +23,21 @@ function parseWeek(week: string) {
   return { start, end };
 }
 
-function getCurrentWeek(): string {
+function getPreviousWeek(): string {
+  // Calculate the previous week (7 days ago)
   const now = new Date();
-  const jan1 = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const jan1 = new Date(Date.UTC(sevenDaysAgo.getUTCFullYear(), 0, 1));
   const dayOfWeek = jan1.getUTCDay();
   const daysToMonday = dayOfWeek === 0 ? 1 : (8 - dayOfWeek);
-  const week1Start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1 + daysToMonday));
+  const week1Start = new Date(Date.UTC(sevenDaysAgo.getUTCFullYear(), 0, 1 + daysToMonday));
 
-  const diffMs = now.getTime() - week1Start.getTime();
+  const diffMs = sevenDaysAgo.getTime() - week1Start.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const weekNum = Math.floor(diffDays / 7) + 1;
 
-  return `${now.getUTCFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+  return `${sevenDaysAgo.getUTCFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
 }
 
 export async function GET(req: NextRequest) {
@@ -47,7 +50,7 @@ export async function GET(req: NextRequest) {
     const path = await import('path');
 
     const { searchParams } = new URL(req.url);
-    const week = searchParams.get('week') || getCurrentWeek();
+    const week = searchParams.get('week') || getPreviousWeek();
     const { start, end } = parseWeek(week);
 
   const trips = await prisma.trip.findMany({
