@@ -14,24 +14,47 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (email) {
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check for ANY guide (active or inactive) with this email, excluding current guide
-    const existingGuide = await prisma.guide.findFirst({
+    // Check for ALL guides (active or inactive) with this email, excluding current guide
+    const existingGuides = await prisma.guide.findMany({
       where: {
         email: normalizedEmail,
         id: { not: params.id }  // Exclude the guide we're updating
       }
     });
 
-    if (existingGuide) {
-      if (existingGuide.active) {
-        // Active guide with this email already exists
-        return new Response(`A guide with email ${email} already exists: ${existingGuide.name}`, { status: 400 });
-      } else {
-        // Inactive guide with this email - clear it so we can reuse
+    if (existingGuides.length > 0) {
+      // Check if any ACTIVE guide has this email
+      const activeGuide = existingGuides.find(g => g.active);
+      if (activeGuide) {
+        return new Response(`A guide with email ${email} already exists: ${activeGuide.name}`, { status: 400 });
+      }
+
+      // Clear email from ALL inactive guides
+      for (const guide of existingGuides) {
         await prisma.guide.update({
-          where: { id: existingGuide.id },
+          where: { id: guide.id },
           data: { email: null }
         });
+      }
+    }
+
+    // Also clear this email from any existing users
+    const existingUsers = await prisma.user.findMany({
+      where: { email: normalizedEmail }
+    });
+
+    for (const user of existingUsers) {
+      // If user is inactive or not linked to a guide, clear/delete them
+      if (!user.active || !user.guideId) {
+        const tripCount = await prisma.trip.count({ where: { createdById: user.id } });
+        if (tripCount === 0) {
+          await prisma.user.delete({ where: { id: user.id } });
+        } else {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { email: `placeholder_${user.id}@removed.local`, guideId: null }
+          });
+        }
       }
     }
   }
