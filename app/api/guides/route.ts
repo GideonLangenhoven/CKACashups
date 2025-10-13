@@ -47,15 +47,20 @@ export async function POST(req: NextRequest) {
             guideId: guide.id
           }
         });
-      } else if (!existingUser.guideId) {
-        // Link existing user to guide
+      } else if (!existingUser.guideId || !existingUser.active) {
+        // Link existing user to guide (or reactivate if deactivated)
         await prisma.user.update({
           where: { id: existingUser.id },
-          data: { guideId: guide.id, name: name }
+          data: {
+            guideId: guide.id,
+            name: name,
+            active: true,  // Reactivate if was deactivated
+            email: normalizedEmail  // Restore proper email if was placeholder
+          }
         });
       } else {
-        // User already linked to another guide
-        return new Response(`Email ${email} is already linked to another guide`, { status: 400 });
+        // User already linked to another ACTIVE guide
+        return new Response(`Email ${email} is already linked to another active guide`, { status: 400 });
       }
     }
 
