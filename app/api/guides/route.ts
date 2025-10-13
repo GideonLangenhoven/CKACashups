@@ -28,7 +28,12 @@ export async function POST(req: NextRequest) {
       try {
         // Check for ALL guides (active or inactive) with this email
         const existingGuides = await prisma.guide.findMany({
-          where: { email: normalizedEmail }
+          where: {
+            email: {
+              equals: normalizedEmail,
+              mode: 'insensitive'
+            }
+          }
         });
         console.log(`[Guide Create] Found ${existingGuides.length} guides with this email`);
 
@@ -52,7 +57,12 @@ export async function POST(req: NextRequest) {
 
         // Also clear this email from any users that might have it
         const existingUsers = await prisma.user.findMany({
-          where: { email: normalizedEmail }
+          where: {
+            email: {
+              equals: normalizedEmail,
+              mode: 'insensitive'
+            }
+          }
         });
         console.log(`[Guide Create] Found ${existingUsers.length} users with this email`);
 
@@ -108,7 +118,14 @@ export async function POST(req: NextRequest) {
     // Auto-create user account for this guide if email provided
     if (normalizedEmail) {
       // After cleanup, check if user still exists
-      const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          email: {
+            equals: normalizedEmail,
+            mode: 'insensitive'
+          }
+        }
+      });
 
       if (!existingUser) {
         // No user exists - create new one

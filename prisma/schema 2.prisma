@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+  // Force regeneration v2
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(cuid())
+  email              String   @unique
+  name               String?
+  role               Role     @default(USER)
+  active             Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  trips              Trip[]   @relation("UserTrips")
+  auditLogs          AuditLog[]
+  invites            Invite[]
+  guideId            String?  @unique
+  guide              Guide?   @relation(fields: [guideId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model Invite {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  invitedById   String
+  invitedBy     User     @relation(fields: [invitedById], references: [id])
+  acceptedAt    DateTime?
+  status        InviteStatus @default(PENDING)
+  createdAt     DateTime @default(now())
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+model Guide {
+  id         String   @id @default(cuid())
+  name       String
+  email      String?  @unique
+  rank       GuideRank
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  tripGuides TripGuide[]
+  ledTrips   Trip[]   @relation("TripLeader")
+  user       User?
+}
+
+enum GuideRank {
+  SENIOR
+  INTERMEDIATE
+  JUNIOR
+  TRAINEE
+}
+
+model FeeRate {
+  id       String    @id @default(cuid())
+  rank     GuideRank
+  rateType RateType  @default(PER_TRIP)
+  amount   Decimal   @db.Decimal(10,2)
+
+  @@unique([rank, rateType], name: "rank_rateType")
+}
+
+enum RateType {
+  PER_TRIP
+  PER_PAX
+}
+
+model Trip {
+  id              String   @id @default(cuid())
+  tripDate        DateTime
+  status          TripStatus @default(DRAFT)
+  leadName        String
+  paxGuideNote    String?
+  totalPax        Int
+  paymentsMadeYN  Boolean   @default(false)
+  picsUploadedYN  Boolean   @default(false)
+  tripEmailSentYN Boolean   @default(false)
+  tripReport      String?
+  suggestions     String?
+  tripLeaderId    String?
+  tripLeader      Guide?   @relation("TripLeader", fields: [tripLeaderId], references: [id])
+  createdById     String
+  createdBy       User     @relation("UserTrips", fields: [createdById], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  payments        PaymentBreakdown?
+  discounts       DiscountLine[]
+  guides          TripGuide[]
+}
+
+enum TripStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  LOCKED
+}
+
+model TripGuide {
+  id         String   @id @default(cuid())
+  tripId     String
+  trip       Trip     @relation(fields: [tripId], references: [id])
+  guideId    String
+  guide      Guide    @relation(fields: [guideId], references: [id])
+  paxCount   Int      @default(0)
+  feeAmount  Decimal  @db.Decimal(10,2)
+}
+
+model PaymentBreakdown {
+  id                 String  @id @default(cuid())
+  tripId             String  @unique
+  trip               Trip    @relation(fields: [tripId], references: [id])
+  cashReceived       Decimal @db.Decimal(10,2)
+  creditCards        Decimal @db.Decimal(10,2)
+  onlineEFTs         Decimal @db.Decimal(10,2)
+  vouchers           Decimal @db.Decimal(10,2)
+  members            Decimal @db.Decimal(10,2)
+  agentsToInvoice    Decimal @db.Decimal(10,2)
+  waterPhoneSunblock Decimal @default(0) @db.Decimal(10,2)
+  discountsTotal     Decimal @db.Decimal(10,2)
+}
+
+model DiscountLine {
+  id        String  @id @default(cuid())
+  tripId    String
+  trip      Trip    @relation(fields: [tripId], references: [id])
+  amount    Decimal @db.Decimal(10,2)
+  reason    String
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  entityType  String
+  entityId    String
+  action      String
+  beforeJSON  Json?
+  afterJSON   Json?
+  actorUserId String
+  actor       User     @relation(fields: [actorUserId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
+model Setting {
+  id            String   @id @default(cuid())
+  timezone      String   @default("Africa/Johannesburg")
+  currency      String   @default("ZAR")
+  emailDayOfMonth Int     @default(29)
+  emailHourLocal  Int     @default(8)
+  brandPrimary  String   @default("#0A66C2")
+  brandAccent   String   @default("#0B84F3")
+}
