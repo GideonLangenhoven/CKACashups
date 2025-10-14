@@ -9,9 +9,8 @@ export async function GET(req: NextRequest) {
       return new Response('Forbidden', { status: 403 });
     }
 
-    // Get all active guides
+    // Get all guides (active and inactive to see complete picture)
     const guides = await prisma.guide.findMany({
-      where: { active: true },
       orderBy: { name: 'asc' }
     });
 
@@ -81,10 +80,21 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    // Sort by this week's total (highest first)
-    guideEarnings.sort((a, b) => b.thisWeekTotal - a.thisWeekTotal);
+    // Filter out guides with no trips at all and sort by activity
+    const activeGuideEarnings = guideEarnings.filter(g =>
+      g.thisMonthTrips.length > 0 || g.guide.active
+    );
 
-    return Response.json({ guides: guideEarnings });
+    // Sort by: 1) Has trips this week, 2) Has trips this month, 3) Weekly total (highest first)
+    activeGuideEarnings.sort((a, b) => {
+      if (a.thisWeekTrips.length > 0 && b.thisWeekTrips.length === 0) return -1;
+      if (b.thisWeekTrips.length > 0 && a.thisWeekTrips.length === 0) return 1;
+      if (a.thisMonthTrips.length > 0 && b.thisMonthTrips.length === 0) return -1;
+      if (b.thisMonthTrips.length > 0 && a.thisMonthTrips.length === 0) return 1;
+      return b.thisWeekTotal - a.thisWeekTotal;
+    });
+
+    return Response.json({ guides: activeGuideEarnings });
   } catch (error: any) {
     console.error('Error fetching guide earnings:', error);
     return new Response(error.message || 'Failed to fetch guide earnings', { status: 500 });

@@ -97,10 +97,9 @@ export default function AdminGuideEarningsPage() {
                 onClick={() => setExpandedGuide(isExpanded ? null : guideEarnings.guide.id)}
               >
                 <div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 4 }}>
-                    {guideEarnings.guide.name}
+                  <div style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span>{guideEarnings.guide.name}</span>
                     <span style={{
-                      marginLeft: 12,
                       fontSize: '0.75rem',
                       padding: '2px 8px',
                       backgroundColor: '#f3f4f6',
@@ -109,6 +108,18 @@ export default function AdminGuideEarningsPage() {
                     }}>
                       {guideEarnings.guide.rank}
                     </span>
+                    {!guideEarnings.guide.active && (
+                      <span style={{
+                        fontSize: '0.75rem',
+                        padding: '2px 8px',
+                        backgroundColor: '#fee2e2',
+                        color: '#991b1b',
+                        borderRadius: 4,
+                        fontWeight: 600
+                      }}>
+                        INACTIVE
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: '0.85rem', color: '#64748b' }}>
                     {guideEarnings.thisWeekTrips.length} trip(s) this week • {guideEarnings.thisMonthTrips.length} trip(s) this month
