@@ -45,27 +45,36 @@ export async function GET(req: NextRequest) {
           orderBy: { tripDate: 'desc' }
         });
 
+        // Convert trips to plain objects with numbers
+        const monthTripsPlain = monthTrips.map(trip => ({
+          ...trip,
+          guides: trip.guides.map(g => ({
+            ...g,
+            feeAmount: parseFloat(g.feeAmount?.toString() || '0')
+          }))
+        }));
+
         // Filter trips for this week
-        const weekTrips = monthTrips.filter(trip => {
+        const weekTripsPlain = monthTripsPlain.filter(trip => {
           const tripDate = new Date(trip.tripDate);
           return tripDate >= startOfWeek;
         });
 
         // Calculate totals
-        const thisWeekTotal = weekTrips.reduce((sum, trip) => {
-          const earnings = parseFloat(trip.guides[0]?.feeAmount?.toString() || '0');
+        const thisWeekTotal = weekTripsPlain.reduce((sum, trip) => {
+          const earnings = trip.guides[0]?.feeAmount || 0;
           return sum + earnings;
         }, 0);
 
-        const thisMonthTotal = monthTrips.reduce((sum, trip) => {
-          const earnings = parseFloat(trip.guides[0]?.feeAmount?.toString() || '0');
+        const thisMonthTotal = monthTripsPlain.reduce((sum, trip) => {
+          const earnings = trip.guides[0]?.feeAmount || 0;
           return sum + earnings;
         }, 0);
 
         return {
           guide,
-          thisWeekTrips: weekTrips,
-          thisMonthTrips: monthTrips,
+          thisWeekTrips: weekTripsPlain,
+          thisMonthTrips: monthTripsPlain,
           thisWeekTotal,
           thisMonthTotal
         };
