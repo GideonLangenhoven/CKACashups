@@ -131,7 +131,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return Response.json({ guide });
   } catch (error: any) {
     if (error?.message === EMAIL_IN_USE_ERROR) {
-      return new Response(`Email ${email} is already linked to another active guide`, { status: 400 });
+      return new Response('Email is already linked to another active guide', { status: 400 });
     }
 
     console.error('Error updating guide:', error);

@@ -26,10 +26,12 @@ export async function createUserSession(email: string, name?: string): Promise<S
     if (user.guide) {
       // Sync user name to guide name if different
       if (user.name !== user.guide.name) {
-        user = await prisma.user.update({
+        await prisma.user.update({
           where: { id: user.id },
           data: { name: user.guide.name }
         });
+        // Update the local user object with the new name
+        user.name = user.guide.name;
       }
 
       // For guides, require exact name match to avoid conflicts (e.g., "Josh" vs "Josh T")
@@ -119,7 +121,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
   const finalName = matchingGuide?.name || normalizedName || normalizedEmail.split('@')[0];
 
   // Create or update user account
-  user = await prisma.user.upsert({
+  const updatedUser = await prisma.user.upsert({
     where: { email: normalizedEmail },
     create: {
       email: normalizedEmail,
@@ -140,10 +142,10 @@ export async function createUserSession(email: string, name?: string): Promise<S
     await prisma.auditLog.create({
       data: {
         entityType: "User",
-        entityId: user.id,
+        entityId: updatedUser.id,
         action: "ACCOUNT_CREATED",
-        afterJSON: { email: user.email, name: user.name, role: user.role, guideId: user.guideId, createdBy: isAdmin ? "ADMIN_EMAIL_LIST" : "OPEN_SIGNUP" },
-        actorUserId: user.id,
+        afterJSON: { email: updatedUser.email, name: updatedUser.name, role: updatedUser.role, guideId: updatedUser.guideId, createdBy: isAdmin ? "ADMIN_EMAIL_LIST" : "OPEN_SIGNUP" },
+        actorUserId: updatedUser.id,
       }
     });
   }
@@ -152,18 +154,18 @@ export async function createUserSession(email: string, name?: string): Promise<S
   await prisma.auditLog.create({
     data: {
       entityType: "User",
-      entityId: user.id,
+      entityId: updatedUser.id,
       action: "SIGN_IN",
-      afterJSON: { email: user.email, name: user.name },
-      actorUserId: user.id,
+      afterJSON: { email: updatedUser.email, name: updatedUser.name },
+      actorUserId: updatedUser.id,
     }
   });
 
   return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    active: user.active,
+    id: updatedUser.id,
+    email: updatedUser.email,
+    name: updatedUser.name,
+    role: updatedUser.role,
+    active: updatedUser.active,
   };
 }
