@@ -26,6 +26,12 @@ export function AdminNav() {
           Manage Guides
         </Link>
         <Link
+          className={isActive("/admin/guide-earnings") ? "btn" : "btn ghost"}
+          href="/admin/guide-earnings"
+        >
+          Guide Earnings
+        </Link>
+        <Link
           className={isActive("/admin/reports") ? "btn" : "btn ghost"}
           href="/admin/reports"
         >
