@@ -53,8 +53,7 @@ export async function POST(req: NextRequest) {
     const { tripDate, leadName, paxGuideNote, totalPax, tripLeaderId, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
     if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
 
-    const guideIds: string[] = (guides || []).map((g: any) => g.guideId);
-    const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
+    let guideIds: string[] = (guides || []).map((g: any) => g.guideId);
 
     // Validate trip leader can only be SENIOR or INTERMEDIATE
     if (tripLeaderId) {
@@ -65,7 +64,14 @@ export async function POST(req: NextRequest) {
       if (tripLeader.rank !== 'SENIOR' && tripLeader.rank !== 'INTERMEDIATE') {
         return new Response('Only SENIOR and INTERMEDIATE guides can be trip leaders', { status: 400 });
       }
+
+      // IMPORTANT: Ensure trip leader is always in the guides array
+      if (!guideIds.includes(tripLeaderId)) {
+        guideIds.push(tripLeaderId);
+      }
     }
+
+    const dbGuides = await prisma.guide.findMany({ where: { id: { in: guideIds } } });
 
     // Calculate earnings for each guide
     const { calculateGuideEarnings } = await import('@/lib/guideEarnings');
@@ -86,13 +92,13 @@ export async function POST(req: NextRequest) {
         createdById: user.id,
         payments: payments ? { create: payments } : undefined,
         discounts: discounts && discounts.length ? { create: discounts.map((d: any) => ({ amount: d.amount, reason: d.reason })) } : undefined,
-        guides: guides && guides.length ? { create: guides.map((g: any) => {
-          const guide = dbGuides.find((x: any) => x.id === g.guideId);
-          if (!guide) throw new Error(`Guide not found: ${g.guideId}`);
-          const paxCount = g.pax || 0;
-          const isTripLeader = g.guideId === tripLeaderId;
+        guides: guideIds && guideIds.length ? { create: guideIds.map((guideId) => {
+          const guide = dbGuides.find((x: any) => x.id === guideId);
+          if (!guide) throw new Error(`Guide not found: ${guideId}`);
+          const paxCount = 0; // Can be updated later
+          const isTripLeader = guideId === tripLeaderId;
           const feeAmount = calculateGuideEarnings(totalPax || 0, guide.rank, isTripLeader);
-          return { guideId: g.guideId, paxCount, feeAmount };
+          return { guideId, paxCount, feeAmount };
         }) } : undefined,
       }
     });
