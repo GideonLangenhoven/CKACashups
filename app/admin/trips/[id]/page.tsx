@@ -107,7 +107,7 @@ export default function AdminTripReviewPage() {
         </div>
 
         <div className="row" style={{ gap: 8, marginBottom: 24, flexWrap: 'wrap' }}>
-          <Link href={`/trips/${tripId}/edit`} className="btn">
+          <Link href={`/admin/trips/${tripId}/edit`} className="btn">
             Edit Cash Up
           </Link>
           <a href={`/api/trips/${tripId}/pdf`} className="btn ghost">
