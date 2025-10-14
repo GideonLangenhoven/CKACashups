@@ -54,9 +54,25 @@ export default function AdminTripsPage() {
     }
   }
 
+  const submittedCount = trips.filter((t: any) => t.status === 'SUBMITTED').length;
+
   return (
     <div className="stack">
       <AdminNav />
+      {submittedCount > 0 && (
+        <div className="card" style={{
+          backgroundColor: '#dbeafe',
+          borderLeft: '4px solid #2563eb',
+          padding: '16px'
+        }}>
+          <div style={{ fontWeight: 600, color: '#1e40af', marginBottom: 4 }}>
+            {submittedCount} trip{submittedCount !== 1 ? 's' : ''} awaiting review
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#1e3a8a' }}>
+            Click "Review & Edit" to view and approve submitted trips
+          </div>
+        </div>
+      )}
       <div className="card">
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <input className="input" placeholder="Search lead name" value={lead} onChange={e=>setLead(e.target.value)} style={{ maxWidth: 240 }} />
@@ -70,9 +86,28 @@ export default function AdminTripsPage() {
         </div>
       </div>
       {isLoading ? <div className="card">Loading...</div> : trips.map((t: any) => (
-        <div key={t.id} className="card">
+        <div key={t.id} className="card" style={{
+          borderLeft: t.status === 'SUBMITTED' ? '4px solid #2563eb' : undefined,
+          backgroundColor: t.status === 'SUBMITTED' ? '#f0f9ff' : undefined
+        }}>
           <div style={{ marginBottom: '12px' }}>
-            <div><strong>{new Date(t.tripDate).toLocaleDateString()}</strong> — {t.leadName}</div>
+            <div className="row" style={{ alignItems: 'center', gap: 8 }}>
+              <strong>{new Date(t.tripDate).toLocaleDateString()}</strong>
+              <span>—</span>
+              <span>{t.leadName}</span>
+              {t.status === 'SUBMITTED' && (
+                <span style={{
+                  fontSize: '0.75rem',
+                  padding: '3px 8px',
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  borderRadius: '12px',
+                  fontWeight: 600
+                }}>
+                  NEEDS REVIEW
+                </span>
+              )}
+            </div>
             <div style={{ color: '#666', fontSize: '0.9rem' }}>Status: {t.status} | Pax: {t.totalPax}</div>
           </div>
           <div style={{ marginBottom: '8px' }}>
@@ -94,11 +129,11 @@ export default function AdminTripsPage() {
             <div style={{ fontWeight: 500, marginBottom: '6px', fontSize: '0.9rem' }}>Actions:</div>
             <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
               <a
-                href={`/trips/${t.id}`}
+                href={`/admin/trips/${t.id}`}
                 className="btn secondary"
                 style={{ textDecoration: 'none' }}
               >
-                Edit
+                Review & Edit
               </a>
               <button
                 className="btn ghost"
