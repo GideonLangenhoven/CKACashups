@@ -69,7 +69,7 @@ export function Navigation() {
             </Link>
             <Link
               href="/trips"
-              className={isActive("/trips") || isActive("/earnings") ? "btn" : "btn ghost"}
+              className={isActive("/trips") ? "btn" : "btn ghost"}
               style={{ textDecoration: "none" }}
             >
               My Trips
@@ -134,7 +134,7 @@ export function Navigation() {
           </Link>
           <Link
             href="/trips"
-            className={isActive("/trips") || isActive("/earnings") ? "btn" : "btn ghost"}
+            className={isActive("/trips") ? "btn" : "btn ghost"}
             style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
             onClick={() => setMenuOpen(false)}
           >
