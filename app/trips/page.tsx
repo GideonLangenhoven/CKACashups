@@ -4,10 +4,22 @@ import Link from "next/link";
 import { SubmitInvoiceButton } from "@/components/SubmitInvoiceButton";
 import { DisputeButton } from "@/components/DisputeButton";
 import { EarningsTripList } from "@/components/EarningsTripList";
+import { headers } from "next/headers";
 
 // Ensure this page is never cached and always shows fresh data
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+// Add response headers to prevent ANY caching
+export async function generateMetadata() {
+  return {
+    other: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    }
+  };
+}
 
 export default async function TripsListPage() {
   const user = await getServerSession();
