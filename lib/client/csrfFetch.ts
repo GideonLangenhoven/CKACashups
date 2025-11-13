@@ -1,13 +1,24 @@
-// Simple fetch wrapper for client-side requests
-// TODO: Add CSRF token support (see SECURITY_AUDIT_REPORT.md)
+// Fetch wrapper that includes CSRF token for mutating requests
+
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') return null;
+
+  const cookieValue = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('csrf-token='))
+    ?.split('=')[1];
+
+  return cookieValue || null;
+}
 
 export async function csrfFetch(url: string, options: RequestInit = {}): Promise<Response> {
-  // In the future, this would include CSRF token in headers
-  // For now, it's just a pass-through to fetch
+  const csrfToken = getCsrfToken();
+
   return fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
       ...options.headers,
     },
   });
