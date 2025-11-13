@@ -13,10 +13,31 @@ export default async function TripsListPage() {
   const user = await getServerSession();
   if (!user?.id) return <div>Please <Link href="/auth/signin">sign in</Link>.</div>;
 
-  // Get user's guide info
+  // SECURITY: Get fresh user data from database using session user ID
+  // This ensures we always use the correct logged-in user's data
   const userWithGuide = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { guideId: true, role: true, guide: { select: { name: true, rank: true } } }
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      guideId: true,
+      role: true,
+      guide: { select: { id: true, name: true, rank: true, email: true } }
+    }
+  });
+
+  if (!userWithGuide) {
+    return <div>Please <Link href="/auth/signin">sign in</Link>.</div>;
+  }
+
+  // Log for debugging (server-side only)
+  console.log('[MY TRIPS PAGE] Loaded for user:', {
+    userId: userWithGuide.id,
+    userEmail: userWithGuide.email,
+    userName: userWithGuide.name,
+    guideId: userWithGuide.guideId,
+    guideName: userWithGuide.guide?.name
   });
 
   // "My Trips" shows only trips where the user created OR was a guide
@@ -86,6 +107,27 @@ export default async function TripsListPage() {
 
   return (
     <div className="stack">
+      {/* SECURITY: Show logged-in user info */}
+      {userWithGuide.guide && (
+        <div style={{
+          padding: '12px 16px',
+          backgroundColor: '#f0f9ff',
+          border: '2px solid #0ea5e9',
+          borderRadius: '8px',
+          marginBottom: '16px'
+        }}>
+          <div style={{ fontSize: '0.85rem', color: '#0369a1', fontWeight: 600, marginBottom: '4px' }}>
+            LOGGED IN AS:
+          </div>
+          <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#0c4a6e' }}>
+            {userWithGuide.guide.name} ({userWithGuide.guide.rank})
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '2px' }}>
+            Email: {userWithGuide.email}
+          </div>
+        </div>
+      )}
+
       <h2>My Trips{userWithGuide?.guide ? ` - ${userWithGuide.guide.name}` : ''}</h2>
 
       {/* Invoice and Dispute Buttons for Guides */}
