@@ -25,11 +25,27 @@ export default async function TripsListPage() {
   const user = await getServerSession();
   if (!user?.id) return <div>Please <Link href="/auth/signin">sign in</Link>.</div>;
 
-  // Get user's guide info
+  // Get user's guide info and role
   const userWithGuide = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { guideId: true, guide: { select: { name: true, rank: true } } }
+    select: {
+      role: true,
+      guideId: true,
+      guide: { select: { name: true, rank: true } }
+    }
   });
+
+  // Admins should use the admin dashboard, not the trips page
+  if (userWithGuide?.role === 'ADMIN') {
+    return (
+      <div className="stack">
+        <div className="card">
+          <h3>Access Restricted</h3>
+          <p>This page is for guides only. As an admin, please use the <Link href="/admin">Admin Dashboard</Link> to manage trips and guides.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!userWithGuide?.guideId) {
     return <div className="stack"><div className="card">You are not linked to a guide profile.</div></div>;
