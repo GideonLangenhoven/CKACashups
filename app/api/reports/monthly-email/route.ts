@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     const { prisma } = await import("@/lib/prisma");
     const { sendEmail } = await import("@/lib/sendMail");
     const { logEvent } = await import("@/lib/log");
+    const { alertReportFailure } = await import("@/lib/alerts");
     const fs = await import('fs');
     const path = await import('path');
 
@@ -355,6 +356,17 @@ export async function GET(req: NextRequest) {
     return Response.json({ ok: true });
   } catch (error: any) {
     console.error('Monthly email error:', error);
+
+    // Send alert about report failure
+    const { alertReportFailure } = await import("@/lib/alerts");
+    const { searchParams } = new URL(req.url);
+    const month = searchParams.get('month') || new Date().toISOString().slice(0,7);
+
+    await alertReportFailure('Monthly', error, {
+      month,
+      endpoint: '/api/reports/monthly-email'
+    }).catch(console.error);
+
     return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

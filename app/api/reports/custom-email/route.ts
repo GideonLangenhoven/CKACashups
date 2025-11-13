@@ -262,6 +262,19 @@ export async function GET(req: NextRequest) {
     return Response.json({ ok: true });
   } catch (error: any) {
     console.error('Custom email error:', error);
+
+    // Send alert about report failure
+    const { alertReportFailure } = await import("@/lib/alerts");
+    const { searchParams } = new URL(req.url);
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
+
+    await alertReportFailure('Custom Date Range', error, {
+      start: startParam,
+      end: endParam,
+      endpoint: '/api/reports/custom-email'
+    }).catch(console.error);
+
     return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

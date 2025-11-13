@@ -60,6 +60,7 @@ export async function GET(req: NextRequest) {
     const { prisma } = await import("@/lib/prisma");
     const { sendEmail } = await import("@/lib/sendMail");
     const { logEvent } = await import("@/lib/log");
+    const { alertReportFailure } = await import("@/lib/alerts");
     const fs = await import('fs');
     const path = await import('path');
 
@@ -410,6 +411,17 @@ export async function GET(req: NextRequest) {
     return Response.json({ ok: true });
   } catch (error: any) {
     console.error('Weekly email error:', error);
+
+    // Send alert about report failure
+    const { alertReportFailure } = await import("@/lib/alerts");
+    const { searchParams } = new URL(req.url);
+    const week = searchParams.get('week') || getPreviousWeek();
+
+    await alertReportFailure('Weekly', error, {
+      week,
+      endpoint: '/api/reports/weekly-email'
+    }).catch(console.error);
+
     return new Response(JSON.stringify({ error: error.message, stack: error.stack }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
