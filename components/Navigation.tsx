@@ -67,13 +67,15 @@ export function Navigation() {
             >
               New Cash Up
             </Link>
-            <Link
-              href="/trips"
-              className={isActive("/trips") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none" }}
-            >
-              My Trips
-            </Link>
+            {!(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
+              <Link
+                href="/trips"
+                className={isActive("/trips") ? "btn" : "btn ghost"}
+                style={{ textDecoration: "none" }}
+              >
+                My Trips
+              </Link>
+            )}
             {(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
               <Link
                 href="/admin"
@@ -132,14 +134,16 @@ export function Navigation() {
           >
             New Cash Up
           </Link>
-          <Link
-            href="/trips"
-            className={isActive("/trips") ? "btn" : "btn ghost"}
-            style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
-            onClick={() => setMenuOpen(false)}
-          >
-            My Trips
-          </Link>
+          {!(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
+            <Link
+              href="/trips"
+              className={isActive("/trips") ? "btn" : "btn ghost"}
+              style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
+              onClick={() => setMenuOpen(false)}
+            >
+              My Trips
+            </Link>
+          )}
           {(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
             <Link
               href="/admin"
