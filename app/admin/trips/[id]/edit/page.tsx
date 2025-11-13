@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { AdminNav } from "@/components/AdminNav";
 import DatePicker from "@/components/DatePicker";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 type Guide = { id: string; name: string; rank: "SENIOR"|"INTERMEDIATE"|"JUNIOR"|"TRAINEE" };
 
@@ -158,7 +159,7 @@ export default function AdminTripEditPage() {
         discounts
       };
 
-      const res = await fetch(`/api/trips/${tripId}`, {
+        const res = await csrfFetch(`/api/trips/${tripId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

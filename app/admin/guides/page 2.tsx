@@ -2,6 +2,7 @@
 import useSWR from 'swr';
 import { useState } from 'react';
 import { AdminNav } from '@/components/AdminNav';
+import { csrfFetch } from '@/lib/client/csrfFetch';
 
 const fetcher = (url: string) => fetch(url).then(r=>r.json());
 
@@ -28,7 +29,7 @@ export default function GuidesPage() {
   });
 
   async function addGuide() {
-    const res = await fetch('/api/guides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rank, email: email || undefined }) });
+    const res = await csrfFetch('/api/guides', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, rank, email: email || undefined }) });
     if (res.ok) { setName(""); setEmail(""); mutate(); } else { alert(await res.text()); }
   }
 
@@ -36,12 +37,12 @@ export default function GuidesPage() {
     if (!confirm(`Are you sure you want to deactivate this guide?\n\nGuide: ${name}\n\nThis will remove them from the active guides list.`)) {
       return;
     }
-    const res = await fetch(`/api/guides/${id}`, { method: 'DELETE' });
+    const res = await csrfFetch(`/api/guides/${id}`, { method: 'DELETE' });
     if (res.ok) mutate(); else alert(await res.text());
   }
 
   async function updateRank(id: string, newRank: string) {
-    const res = await fetch(`/api/guides/${id}`, {
+    const res = await csrfFetch(`/api/guides/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rank: newRank })
@@ -130,4 +131,3 @@ export default function GuidesPage() {
     </div>
   );
 }
-

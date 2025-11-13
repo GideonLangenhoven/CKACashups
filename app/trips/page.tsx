@@ -3,6 +3,10 @@ import { getServerSession } from "@/lib/session";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+// Ensure this page is never cached and always shows fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function TripsListPage() {
   const user = await getServerSession();
   if (!user?.id) return <div>Please <Link href="/auth/signin">sign in</Link>.</div>;

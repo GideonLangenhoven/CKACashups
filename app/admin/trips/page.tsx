@@ -2,6 +2,7 @@
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
 import { AdminNav } from '@/components/AdminNav';
+import { csrfFetch } from '@/lib/client/csrfFetch';
 
 const fetcher = (url: string) => fetch(url).then(r=>r.json());
 
@@ -30,7 +31,7 @@ export default function AdminTripsPage() {
   async function setStatus(id: string, status: string) {
     setUpdating(id);
     try {
-      const res = await fetch(`/api/trips/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+      const res = await csrfFetch(`/api/trips/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
       if (!res.ok) throw new Error(await res.text());
       mutate();
     } catch (e: any) { alert(e.message); }
@@ -43,7 +44,7 @@ export default function AdminTripsPage() {
     }
     setUpdating(id);
     try {
-      const res = await fetch(`/api/trips/${id}`, { method: 'DELETE' });
+      const res = await csrfFetch(`/api/trips/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(await res.text());
       alert('Trip deleted successfully');
       mutate();

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/session-context";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 export default function SignIn() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function SignIn() {
     }
 
     try {
-      const res = await fetch("/api/auth/signin", {
+      const res = await csrfFetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name }),

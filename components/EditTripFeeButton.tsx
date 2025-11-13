@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 interface EditTripFeeButtonProps {
   tripId: string;
@@ -38,7 +39,7 @@ export function EditTripFeeButton({
 
     setSaving(true);
     try {
-      const res = await fetch(`/api/trip-guides/${tripGuideId}/fee`, {
+      const res = await csrfFetch(`/api/trip-guides/${tripGuideId}/fee`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feeAmount, reason: reason.trim() })

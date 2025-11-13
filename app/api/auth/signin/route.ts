@@ -1,10 +1,34 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createUserSession } from "@/lib/auth";
-import { SignJWT } from "jose";
+import {
+  AUTH_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  ACCESS_TOKEN_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_MAX_AGE_SECONDS,
+  createAccessToken,
+  createRefreshToken,
+} from "@/lib/tokens";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
-);
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = (maxAge: number, httpOnly: boolean) => ({
+  httpOnly,
+  secure: isProduction,
+  sameSite: "lax" as const,
+  maxAge,
+  path: "/",
+});
+
+function issueCsrfCookie(response: NextResponse) {
+  response.cookies.set("csrf-token", randomUUID(), {
+    httpOnly: false,
+    secure: isProduction,
+    sameSite: "lax",
+    maxAge: REFRESH_TOKEN_MAX_AGE_SECONDS,
+    path: "/",
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,29 +47,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create JWT token
-    const token = await new SignJWT({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      active: user.active,
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("7d")
-      .sign(JWT_SECRET);
+    const [accessToken, refreshToken] = await Promise.all([
+      createAccessToken(user),
+      createRefreshToken(user),
+    ]);
 
     const response = NextResponse.json({ user }, { status: 200 });
 
-    // Set HTTP-only cookie
-    response.cookies.set("auth-token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
+    response.cookies.set(
+      AUTH_COOKIE_NAME,
+      accessToken,
+      cookieOptions(ACCESS_TOKEN_MAX_AGE_SECONDS, true)
+    );
+
+    response.cookies.set(
+      REFRESH_COOKIE_NAME,
+      refreshToken,
+      cookieOptions(REFRESH_TOKEN_MAX_AGE_SECONDS, true)
+    );
+
+    issueCsrfCookie(response);
 
     return response;
   } catch (error) {

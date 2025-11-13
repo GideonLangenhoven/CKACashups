@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
@@ -5,6 +6,27 @@ import { sendEmail } from "@/lib/sendMail";
 import { logEvent } from "@/lib/log";
 
 export const dynamic = 'force-dynamic';
+
+const MONTH_PARAM_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => {
+    switch (char) {
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      case "'":
+        return "&#39;";
+      default:
+        return char;
+    }
+  });
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +58,16 @@ export async function POST(req: NextRequest) {
     if (!month || !reason) {
       return new Response('Month and reason are required', { status: 400 });
     }
+
+    if (typeof month !== 'string' || !MONTH_PARAM_REGEX.test(month)) {
+      return new Response('Month must be in YYYY-MM format', { status: 400 });
+    }
+
+    if (typeof reason !== 'string' || reason.trim().length === 0) {
+      return new Response('Reason must be a non-empty string', { status: 400 });
+    }
+
+    const sanitizedReason = escapeHtml(reason).replace(/\n/g, '<br>');
 
     // Get trip data for the month
     const [year, monthNum] = month.split('-').map(Number);
@@ -99,7 +131,7 @@ export async function POST(req: NextRequest) {
 
         <h3>Reason for Dispute:</h3>
         <p style="background: #fef2f2; padding: 12px; border-left: 4px solid #dc2626; margin: 16px 0;">
-          ${reason.replace(/\n/g, '<br>')}
+          ${sanitizedReason}
         </p>
 
         <h3>Trips in System:</h3>
@@ -128,8 +160,9 @@ ${tripList || '  No trips found'}
       message: 'Dispute submitted successfully'
     });
   } catch (error: any) {
-    console.error('Submit dispute error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorReference = randomUUID();
+    console.error(`[Dispute Submit] Error ${errorReference}:`, error);
+    return new Response(JSON.stringify({ error: 'Failed to submit dispute', referenceId: errorReference }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

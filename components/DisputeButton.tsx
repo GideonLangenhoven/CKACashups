@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 interface DisputeButtonProps {
   guideName: string;
@@ -24,7 +25,7 @@ export function DisputeButton({ guideName, month, tripCount, totalEarnings }: Di
     setLoading(true);
 
     try {
-      const res = await fetch('/api/guides/dispute', {
+      const res = await csrfFetch('/api/guides/dispute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

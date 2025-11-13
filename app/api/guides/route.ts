@@ -1,9 +1,15 @@
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 
 import { NextRequest } from "next/server";
 
 export async function GET() {
+  const session = await getServerSession();
+  if (!session?.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const guides = await prisma.guide.findMany({ where: { active: true }, orderBy: { name: 'asc' } });
   return Response.json({ guides });
 }
@@ -167,17 +173,11 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ guide });
   } catch (error: any) {
-    console.error('Error creating guide:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta,
-      stack: error.stack
-    });
+    const errorReference = randomUUID();
+    console.error(`[Guide Create] Error ${errorReference}:`, error);
     return new Response(JSON.stringify({
-      error: error.message || 'Failed to create guide',
-      details: error.code || 'UNKNOWN_ERROR',
-      meta: error.meta
+      error: 'Failed to create guide',
+      referenceId: errorReference
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

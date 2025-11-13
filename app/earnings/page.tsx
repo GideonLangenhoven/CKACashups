@@ -5,6 +5,10 @@ import { SubmitInvoiceButton } from "@/components/SubmitInvoiceButton";
 import { DisputeButton } from "@/components/DisputeButton";
 import { EarningsTripList } from "@/components/EarningsTripList";
 
+// Ensure this page is never cached and always shows fresh data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function EarningsPage() {
   const user = await getServerSession();
   if (!user?.id) return <div>Please <Link href="/auth/signin">sign in</Link>.</div>;

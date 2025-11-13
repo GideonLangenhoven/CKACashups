@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 export function SubmitInvoiceButton() {
   const [loading, setLoading] = useState(false);
@@ -15,7 +16,7 @@ export function SubmitInvoiceButton() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/guides/submit-invoice', {
+      const res = await csrfFetch('/api/guides/submit-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ month: selectedMonth })

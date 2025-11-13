@@ -4,7 +4,9 @@
 
 **Location:** `/Users/user/Desktop/CKACashups/.env.local`
 
-This file has been created for you. Open it in any text editor and fill in these required values:
+This file has been created for you and is deliberately ignored by git. Never commit real credentials to the repository—copy values from `.env.example`, keep them in `.env.local` for local runs, and configure the same keys in the Vercel dashboard for deployed environments.
+
+Open `.env.local` in any text editor and fill in these required values:
 
 ### Required Fields:
 

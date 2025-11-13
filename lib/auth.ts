@@ -41,7 +41,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
 
         // Require exact match for guides
         if (guideName !== enteredName) {
-          throw new Error(`Incorrect name for this email address. Please use exactly: ${user.guide.name}`);
+          throw new Error('Incorrect email address or name. Please check your credentials and try again.');
         }
       }
     } else {
@@ -52,7 +52,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
 
         // Require exact match
         if (storedName !== enteredName) {
-          throw new Error(`Incorrect name for this email address. Please use exactly: ${user.name}`);
+          throw new Error('Incorrect email address or name. Please check your credentials and try again.');
         }
       }
     }
@@ -79,7 +79,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
   // Admin emails: explicit list or fallback to two requested emails
   const adminEmails = (process.env.ADMIN_EMAILS || 'gidslang89@gmail.com,info@kayak.co.za')
     .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-  const isAdmin = adminEmails.includes(normalizedEmail);
+  const isAdminEmail = adminEmails.includes(normalizedEmail);
 
   // Try to find matching guide by email first, then by name
   let matchingGuide = null;
@@ -126,11 +126,11 @@ export async function createUserSession(email: string, name?: string): Promise<S
     create: {
       email: normalizedEmail,
       name: finalName,
-      role: isAdmin ? 'ADMIN' : 'USER',
+      role: isAdminEmail ? 'ADMIN' : 'USER',
       guideId: matchingGuide?.id
     },
     update: {
-      role: isAdmin ? 'ADMIN' : undefined,
+      role: isAdminEmail ? 'ADMIN' : undefined,
       active: true,
       name: matchingGuide?.name || undefined,  // Update name to match guide
       guideId: matchingGuide?.id || undefined
@@ -144,7 +144,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
         entityType: "User",
         entityId: updatedUser.id,
         action: "ACCOUNT_CREATED",
-        afterJSON: { email: updatedUser.email, name: updatedUser.name, role: updatedUser.role, guideId: updatedUser.guideId, createdBy: isAdmin ? "ADMIN_EMAIL_LIST" : "OPEN_SIGNUP" },
+        afterJSON: { email: updatedUser.email, name: updatedUser.name, role: updatedUser.role, guideId: updatedUser.guideId, createdBy: isAdminEmail ? "ADMIN_EMAIL_LIST" : "OPEN_SIGNUP" },
         actorUserId: updatedUser.id,
       }
     });

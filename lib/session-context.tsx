@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { SessionUser } from "./auth";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 interface SessionContextType {
   user: SessionUser | null;
@@ -29,7 +30,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      await fetch("/api/auth/signout", { method: "POST" });
+      await csrfFetch("/api/auth/signout", { method: "POST" });
       // Clear any cached form data from localStorage
       localStorage.removeItem('cashup-draft');
       setUser(null);

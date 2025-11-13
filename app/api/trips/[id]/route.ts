@@ -1,11 +1,35 @@
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { logEvent } from "@/lib/log";
 
 export async function GET(_: NextRequest, { params }: { params: { id: string }}) {
-  const trip = await prisma.trip.findUnique({ where: { id: params.id }, include: { payments: true, discounts: true, guides: { include: { guide: true } } } });
+  const user = await getServerSession();
+  if (!user?.id) return new Response('Unauthorized', { status: 401 });
+
+  const trip = await prisma.trip.findUnique({
+    where: { id: params.id },
+    include: { payments: true, discounts: true, guides: { include: { guide: true } } }
+  });
+
   if (!trip) return new Response('Not found', { status: 404 });
+
+  if (user.role !== 'ADMIN') {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { guideId: true }
+    });
+    const isCreator = trip.createdById === user.id;
+    const isAssignedGuide = userRecord?.guideId
+      ? trip.guides.some((g) => g.guideId === userRecord.guideId)
+      : false;
+
+    if (!isCreator && !isAssignedGuide) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+
   return Response.json({ trip });
 }
 
@@ -103,8 +127,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     logEvent('trip_updated', { tripId: trip.id, userId: user.id, leadName });
     return Response.json({ trip: updated });
   } catch (error: any) {
-    console.error('Error updating trip:', error);
-    return new Response(JSON.stringify({ error: error.message, details: error.toString() }), {
+    const errorReference = randomUUID();
+    console.error(`[Trip Update] Error ${errorReference}:`, error);
+    return new Response(JSON.stringify({ error: 'Failed to update trip', referenceId: errorReference }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

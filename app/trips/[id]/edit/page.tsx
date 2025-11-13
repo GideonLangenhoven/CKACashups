@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import DatePicker from "@/components/DatePicker";
 import TimePicker from "@/components/TimePicker";
 import { todayLocalISODate } from "@/lib/time";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 type Guide = { id: string; name: string; rank: "SENIOR"|"INTERMEDIATE"|"JUNIOR"|"TRAINEE" };
 
@@ -173,7 +174,7 @@ export default function EditTripPage() {
       },
       discounts
     };
-    const res = await fetch(`/api/trips/${tripId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const res = await csrfFetch(`/api/trips/${tripId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
       router.push(`/trips/${tripId}`);
     } else {

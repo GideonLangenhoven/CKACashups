@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // Force regeneration v3 - password fields removed
 }
 
 datasource db {
@@ -9,137 +8,105 @@ datasource db {
 }
 
 model User {
-  id                 String   @id @default(cuid())
-  email              String   @unique
-  name               String?
-  role               Role     @default(USER)
-  active             Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  trips              Trip[]   @relation("UserTrips")
-  auditLogs          AuditLog[]
-  invites            Invite[]
-  guideId            String?  @unique
-  guide              Guide?   @relation(fields: [guideId], references: [id])
-}
-
-enum Role {
-  ADMIN
-  USER
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  role      Role       @default(USER)
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  guideId   String?    @unique
+  auditLogs AuditLog[]
+  invites   Invite[]
+  trips     Trip[]     @relation("UserTrips")
+  guide     Guide?     @relation(fields: [guideId], references: [id])
 }
 
 model Invite {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  invitedById   String
-  invitedBy     User     @relation(fields: [invitedById], references: [id])
-  acceptedAt    DateTime?
-  status        InviteStatus @default(PENDING)
-  createdAt     DateTime @default(now())
-}
-
-enum InviteStatus {
-  PENDING
-  ACCEPTED
-  REVOKED
+  id          String       @id @default(cuid())
+  email       String       @unique
+  invitedById String
+  acceptedAt  DateTime?
+  status      InviteStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  invitedBy   User         @relation(fields: [invitedById], references: [id])
 }
 
 model Guide {
-  id         String   @id @default(cuid())
+  id         String      @id @default(cuid())
   name       String
-  email      String?  @unique
   rank       GuideRank
-  active     Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  active     Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  email      String?     @unique
+  ledTrips   Trip[]      @relation("TripLeader")
   tripGuides TripGuide[]
-  ledTrips   Trip[]   @relation("TripLeader")
   user       User?
-}
-
-enum GuideRank {
-  SENIOR
-  INTERMEDIATE
-  JUNIOR
-  TRAINEE
 }
 
 model FeeRate {
   id       String    @id @default(cuid())
   rank     GuideRank
   rateType RateType  @default(PER_TRIP)
-  amount   Decimal   @db.Decimal(10,2)
+  amount   Decimal   @db.Decimal(10, 2)
 
   @@unique([rank, rateType], name: "rank_rateType")
 }
 
-enum RateType {
-  PER_TRIP
-  PER_PAX
-}
-
 model Trip {
-  id              String   @id @default(cuid())
+  id              String            @id @default(cuid())
   tripDate        DateTime
-  status          TripStatus @default(DRAFT)
+  status          TripStatus        @default(DRAFT)
   leadName        String
   paxGuideNote    String?
   totalPax        Int
-  paymentsMadeYN  Boolean   @default(false)
-  picsUploadedYN  Boolean   @default(false)
-  tripEmailSentYN Boolean   @default(false)
-  tripReport      String?
-  suggestions     String?
-  tripLeaderId    String?
-  tripLeader      Guide?   @relation("TripLeader", fields: [tripLeaderId], references: [id])
+  paymentsMadeYN  Boolean           @default(false)
+  picsUploadedYN  Boolean           @default(false)
+  tripEmailSentYN Boolean           @default(false)
   createdById     String
-  createdBy       User     @relation("UserTrips", fields: [createdById], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  payments        PaymentBreakdown?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  suggestions     String?
+  tripReport      String?
+  tripLeaderId    String?
   discounts       DiscountLine[]
+  payments        PaymentBreakdown?
+  createdBy       User              @relation("UserTrips", fields: [createdById], references: [id])
+  tripLeader      Guide?            @relation("TripLeader", fields: [tripLeaderId], references: [id])
   guides          TripGuide[]
 }
 
-enum TripStatus {
-  DRAFT
-  SUBMITTED
-  APPROVED
-  REJECTED
-  LOCKED
-}
-
 model TripGuide {
-  id         String   @id @default(cuid())
-  tripId     String
-  trip       Trip     @relation(fields: [tripId], references: [id])
-  guideId    String
-  guide      Guide    @relation(fields: [guideId], references: [id])
-  paxCount   Int      @default(0)
-  feeAmount  Decimal  @db.Decimal(10,2)
+  id        String  @id @default(cuid())
+  tripId    String
+  guideId   String
+  paxCount  Int     @default(0)
+  feeAmount Decimal @db.Decimal(10, 2)
+  guide     Guide   @relation(fields: [guideId], references: [id])
+  trip      Trip    @relation(fields: [tripId], references: [id])
 }
 
 model PaymentBreakdown {
   id                 String  @id @default(cuid())
   tripId             String  @unique
+  cashReceived       Decimal @db.Decimal(10, 2)
+  creditCards        Decimal @db.Decimal(10, 2)
+  onlineEFTs         Decimal @db.Decimal(10, 2)
+  vouchers           Decimal @db.Decimal(10, 2)
+  members            Decimal @db.Decimal(10, 2)
+  agentsToInvoice    Decimal @db.Decimal(10, 2)
+  discountsTotal     Decimal @db.Decimal(10, 2)
+  waterPhoneSunblock Decimal @default(0) @db.Decimal(10, 2)
   trip               Trip    @relation(fields: [tripId], references: [id])
-  cashReceived       Decimal @db.Decimal(10,2)
-  creditCards        Decimal @db.Decimal(10,2)
-  onlineEFTs         Decimal @db.Decimal(10,2)
-  vouchers           Decimal @db.Decimal(10,2)
-  members            Decimal @db.Decimal(10,2)
-  agentsToInvoice    Decimal @db.Decimal(10,2)
-  waterPhoneSunblock Decimal @default(0) @db.Decimal(10,2)
-  discountsTotal     Decimal @db.Decimal(10,2)
 }
 
 model DiscountLine {
-  id        String  @id @default(cuid())
-  tripId    String
-  trip      Trip    @relation(fields: [tripId], references: [id])
-  amount    Decimal @db.Decimal(10,2)
-  reason    String
+  id     String  @id @default(cuid())
+  tripId String
+  amount Decimal @db.Decimal(10, 2)
+  reason String
+  trip   Trip    @relation(fields: [tripId], references: [id])
 }
 
 model AuditLog {
@@ -150,17 +117,47 @@ model AuditLog {
   beforeJSON  Json?
   afterJSON   Json?
   actorUserId String
-  actor       User     @relation(fields: [actorUserId], references: [id])
   createdAt   DateTime @default(now())
+  actor       User     @relation(fields: [actorUserId], references: [id])
 }
 
-
 model Setting {
-  id            String   @id @default(cuid())
-  timezone      String   @default("Africa/Johannesburg")
-  currency      String   @default("ZAR")
-  emailDayOfMonth Int     @default(29)
-  emailHourLocal  Int     @default(8)
-  brandPrimary  String   @default("#0A66C2")
-  brandAccent   String   @default("#0B84F3")
+  id              String @id @default(cuid())
+  timezone        String @default("Africa/Johannesburg")
+  currency        String @default("ZAR")
+  emailDayOfMonth Int    @default(29)
+  emailHourLocal  Int    @default(8)
+  brandPrimary    String @default("#0A66C2")
+  brandAccent     String @default("#0B84F3")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+enum GuideRank {
+  SENIOR
+  INTERMEDIATE
+  JUNIOR
+  TRAINEE
+}
+
+enum RateType {
+  PER_TRIP
+  PER_PAX
+}
+
+enum TripStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  LOCKED
 }

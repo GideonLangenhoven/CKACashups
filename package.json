@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "lint": "next lint",
-    "backfill:trip-leaders": "tsx scripts/backfill-trip-leader-earnings.ts"
+    "backfill:trip-leaders": "tsx scripts/backfill-trip-leader-earnings.ts",
+    "qa:guide-journey": "tsx scripts/test-guide-journey.ts"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

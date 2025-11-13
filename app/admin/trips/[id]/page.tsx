@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AdminNav } from "@/components/AdminNav";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 export default function AdminTripReviewPage() {
   const params = useParams();
@@ -37,7 +38,7 @@ export default function AdminTripReviewPage() {
 
     setUpdating(true);
     try {
-      const res = await fetch(`/api/trips/${tripId}`, {
+      const res = await csrfFetch(`/api/trips/${tripId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })

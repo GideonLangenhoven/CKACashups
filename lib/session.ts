@@ -1,30 +1,27 @@
 import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-import { SessionUser } from "./auth";
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
-);
+import type { SessionUser } from "./auth";
+import {
+  AUTH_COOKIE_NAME,
+  toSessionUser,
+  verifyToken,
+} from "@/lib/tokens";
 
 export async function getServerSession(): Promise<SessionUser | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("auth-token")?.value;
+    const cookieStore = cookies();
+    const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
 
     if (!token) {
       return null;
     }
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await verifyToken(token);
+    if (payload.type !== "access") {
+      return null;
+    }
 
-    return {
-      id: payload.userId as string,
-      email: payload.email as string,
-      name: payload.name as string | null,
-      role: payload.role as "ADMIN" | "USER",
-      active: payload.active as boolean,
-    };
-  } catch (error) {
+    return toSessionUser(payload);
+  } catch {
     return null;
   }
 }
