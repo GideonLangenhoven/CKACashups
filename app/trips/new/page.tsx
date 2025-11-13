@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import DatePicker from "@/components/DatePicker";
 import TimePicker from "@/components/TimePicker";
 import { todayLocalISODate } from "@/lib/time";
+import { csrfFetch } from "@/lib/client/csrfFetch";
 
 type Guide = { id: string; name: string; rank: "SENIOR"|"INTERMEDIATE"|"JUNIOR"|"TRAINEE" };
 
@@ -22,12 +23,6 @@ export default function NewTripPage() {
   const [selectedGuides, setSelectedGuides] = useState<string[]>([]);
 
   const [cashReceived, setCashReceived] = useState<string>("");
-  const [creditCards, setCreditCards] = useState<string>("");
-  const [onlineEFTs, setOnlineEFTs] = useState<string>("");
-  const [vouchers, setVouchers] = useState<string>("");
-  const [members, setMembers] = useState<string>("");
-  const [agentsToInvoice, setAgentsToInvoice] = useState<string>("");
-  const [waterPhoneSunblock, setWaterPhoneSunblock] = useState<string>("");
   const [discounts, setDiscounts] = useState<{amount: string; reason: string}[]>([]);
   const [paymentsMadeYN, setPaymentsMadeYN] = useState<boolean>(false);
   const [picsUploadedYN, setPicsUploadedYN] = useState<boolean>(false);
@@ -78,11 +73,6 @@ export default function NewTripPage() {
         setTotalPax(d.totalPax || 0);
         setSelectedGuides(d.selectedGuides || []);
         setCashReceived(d.cashReceived || "");
-        setCreditCards(d.creditCards || "");
-        setOnlineEFTs(d.onlineEFTs || "");
-        setVouchers(d.vouchers || "");
-        setMembers(d.members || "");
-        setAgentsToInvoice(d.agentsToInvoice || "");
         setDiscounts(d.discounts || []);
         setPaymentsMadeYN(!!d.paymentsMadeYN);
         setPicsUploadedYN(!!d.picsUploadedYN);
@@ -96,9 +86,9 @@ export default function NewTripPage() {
   }, []);
 
   useEffect(() => {
-    const payload = { tripDate, tripTime, leadName, paxGuideNote, totalPax, selectedGuides, cashReceived, creditCards, onlineEFTs, vouchers, members, agentsToInvoice, discounts, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions };
+    const payload = { tripDate, tripTime, leadName, paxGuideNote, totalPax, selectedGuides, cashReceived, discounts, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions };
     localStorage.setItem('cashup-draft', JSON.stringify(payload));
-  }, [tripDate, tripTime, leadName, paxGuideNote, totalPax, selectedGuides, cashReceived, creditCards, onlineEFTs, vouchers, members, agentsToInvoice, discounts, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions]);
+  }, [tripDate, tripTime, leadName, paxGuideNote, totalPax, selectedGuides, cashReceived, discounts, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions]);
 
   function toggleGuide(id: string) {
     setSelectedGuides((prev) => {
@@ -114,21 +104,10 @@ export default function NewTripPage() {
   }
 
   async function submit(status: "DRAFT"|"SUBMITTED") {
-    // Validate payment fields are numbers
-    const paymentFields = [
-      { name: 'Cash received', value: cashReceived },
-      { name: 'Credit cards', value: creditCards },
-      { name: 'Online EFTs', value: onlineEFTs },
-      { name: 'Vouchers', value: vouchers },
-      { name: 'Members', value: members },
-      { name: 'Agents to invoice', value: agentsToInvoice }
-    ];
-
-    for (const field of paymentFields) {
-      if (field.value && isNaN(parseFloat(field.value))) {
-        alert(`Error: ${field.name} must be a number. Please enter numbers only (e.g., 100 or 100.50)`);
-        return;
-      }
+    // Validate cash received is a number
+    if (cashReceived && isNaN(parseFloat(cashReceived))) {
+      alert('Error: Cash received must be a number. Please enter numbers only (e.g., 100 or 100.50)');
+      return;
     }
 
     // Validate discount amounts
@@ -154,17 +133,17 @@ export default function NewTripPage() {
       guides: selectedGuides.map(guideId => ({ guideId, pax: 0 })),
       payments: {
         cashReceived: parseFloat(cashReceived || "0"),
-        creditCards: parseFloat(creditCards || "0"),
-        onlineEFTs: parseFloat(onlineEFTs || "0"),
-        vouchers: parseFloat(vouchers || "0"),
-        members: parseFloat(members || "0"),
-        agentsToInvoice: parseFloat(agentsToInvoice || "0"),
-        waterPhoneSunblock: parseFloat(waterPhoneSunblock || "0"),
+        creditCards: 0,
+        onlineEFTs: 0,
+        vouchers: 0,
+        members: 0,
+        agentsToInvoice: 0,
+        waterPhoneSunblock: 0,
         discountsTotal: parseFloat(discountTotal.toFixed(2))
       },
       discounts
     };
-    const res = await fetch('/api/trips', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const res = await csrfFetch('/api/trips', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     if (res.ok) {
       localStorage.removeItem('cashup-draft');
       sessionStorage.setItem('trip-just-submitted', 'true');
@@ -286,41 +265,43 @@ export default function NewTripPage() {
       {step === 3 && (
         <div className="stack">
           <div className="section-title">Payments</div>
-          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Cash received (R)</label>
-              <input className="input" inputMode="decimal" value={cashReceived} onChange={e=>setCashReceived(e.target.value)} placeholder="Numbers only" />
+          <div style={{ marginBottom: '20px' }}>
+            <label className="label" style={{ marginBottom: 12, display: 'block' }}>Cash received?</label>
+            <div className="row" style={{ gap: '16px', marginBottom: '16px' }}>
+              <label className="row" style={{ cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="cashReceivedYN"
+                  checked={cashReceived !== "" && parseFloat(cashReceived || "0") > 0}
+                  onChange={() => setCashReceived("0")}
+                  style={{ marginRight: '8px' }}
+                />
+                Yes
+              </label>
+              <label className="row" style={{ cursor: 'pointer' }}>
+                <input
+                  type="radio"
+                  name="cashReceivedYN"
+                  checked={cashReceived === "" || parseFloat(cashReceived || "0") === 0}
+                  onChange={() => setCashReceived("")}
+                  style={{ marginRight: '8px' }}
+                />
+                No
+              </label>
             </div>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Credit cards (R)</label>
-              <input className="input" inputMode="decimal" value={creditCards} onChange={e=>setCreditCards(e.target.value)} placeholder="Numbers only" />
-            </div>
-          </div>
-          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Online EFTs (R)</label>
-              <input className="input" inputMode="decimal" value={onlineEFTs} onChange={e=>setOnlineEFTs(e.target.value)} placeholder="Numbers only" />
-            </div>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Vouchers (R)</label>
-              <input className="input" inputMode="decimal" value={vouchers} onChange={e=>setVouchers(e.target.value)} placeholder="Numbers only" />
-            </div>
-          </div>
-          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Members (R)</label>
-              <input className="input" inputMode="decimal" value={members} onChange={e=>setMembers(e.target.value)} placeholder="Numbers only" />
-            </div>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Agents to invoice (R)</label>
-              <input className="input" inputMode="decimal" value={agentsToInvoice} onChange={e=>setAgentsToInvoice(e.target.value)} placeholder="Numbers only" />
-            </div>
-          </div>
-          <div className="payment-row" style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div className="payment-field" style={{ width: '35%' }}>
-              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Water, Phone Cases & Sunblock (R)</label>
-              <input className="input" inputMode="decimal" value={waterPhoneSunblock} onChange={e=>setWaterPhoneSunblock(e.target.value)} placeholder="Numbers only" />
-            </div>
+            {(cashReceived !== "" && parseFloat(cashReceived || "0") >= 0) && (
+              <div style={{ marginTop: '16px' }}>
+                <label className="label" style={{ marginBottom: 6, display: 'block' }}>Amount received (R)</label>
+                <input
+                  className="input"
+                  inputMode="decimal"
+                  value={cashReceived}
+                  onChange={e=>setCashReceived(e.target.value)}
+                  placeholder="Enter amount"
+                  style={{ maxWidth: '300px' }}
+                />
+              </div>
+            )}
           </div>
           <div className="section-title">Discounts</div>
           {discounts.map((d, idx) => (

@@ -1,11 +1,39 @@
 import { NextRequest } from "next/server";
+import { getServerSession } from "@/lib/session";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
+const DATE_PARAM_REGEX = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+function parseDateParam(value: string | null, type: "start" | "end") {
+  if (!value || !DATE_PARAM_REGEX.test(value)) {
+    throw new Error(`${type} must be provided in YYYY-MM-DD format`);
+  }
+
+  const date =
+    type === "start"
+      ? new Date(`${value}T00:00:00Z`)
+      : new Date(`${value}T23:59:59Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    throw new Error(`Invalid ${type} date`);
+  }
+
+  return date;
+}
+
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession();
+    if (!session?.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+    if (session.role !== 'ADMIN') {
+      return new Response('Forbidden', { status: 403 });
+    }
+
     // Dynamic imports to avoid build-time bundling issues
     const { prisma } = await import("@/lib/prisma");
     const { sendEmail } = await import("@/lib/sendMail");
@@ -14,15 +42,21 @@ export async function GET(req: NextRequest) {
     const path = await import('path');
 
     const { searchParams } = new URL(req.url);
-    const start = searchParams.get('start');
-    const end = searchParams.get('end');
+    const startParam = searchParams.get('start');
+    const endParam = searchParams.get('end');
 
-    if (!start || !end) {
-      return new Response('start and end dates required (YYYY-MM-DD)', { status: 400 });
+    let startDate: Date;
+    let endDate: Date;
+    try {
+      startDate = parseDateParam(startParam, "start");
+      endDate = parseDateParam(endParam, "end");
+    } catch (validationError: any) {
+      return new Response(validationError.message, { status: 400 });
     }
 
-    const startDate = new Date(start + 'T00:00:00Z');
-    const endDate = new Date(end + 'T23:59:59Z');
+    if (startDate > endDate) {
+      return new Response('start must be before end', { status: 400 });
+    }
 
     const trips = await prisma.trip.findMany({
       where: { tripDate: { gte: startDate, lte: endDate } },
@@ -59,7 +93,7 @@ export async function GET(req: NextRequest) {
 
     content.push(
       { text: `Custom Date Range Cash Ups Report`, style: 'header', alignment: 'center' },
-      { text: `${start} to ${end}`, style: 'subheader', alignment: 'center', margin: [0, 0, 0, 20] }
+      { text: `${startParam!} to ${endParam!}`, style: 'subheader', alignment: 'center', margin: [0, 0, 0, 20] }
     );
 
     // Calculate guide statistics
@@ -216,15 +250,15 @@ export async function GET(req: NextRequest) {
 
     await sendEmail({
       to: recipients,
-      subject: `Custom Date Range Cash Ups Report — ${start} to ${end}`,
-      html: `<p>Attached are the PDF and Excel reports for custom date range ${start} to ${end}.</p>`,
+      subject: `Custom Date Range Cash Ups Report — ${startParam} to ${endParam}`,
+      html: `<p>Attached are the PDF and Excel reports for custom date range ${startParam} to ${endParam}.</p>`,
       attachments: [
-        { filename: `cashups-${start}-to-${end}.pdf`, content: pdf, contentType: 'application/pdf' },
-        { filename: `cashups-${start}-to-${end}.xlsx`, content: Buffer.from(xlsBuf), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+        { filename: `cashups-${startParam}-to-${endParam}.pdf`, content: pdf, contentType: 'application/pdf' },
+        { filename: `cashups-${startParam}-to-${endParam}.xlsx`, content: Buffer.from(xlsBuf), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
       ]
     });
 
-    logEvent('report_custom_email_sent', { start, end, recipientsCount: recipients.length });
+    logEvent('report_custom_email_sent', { start: startParam, end: endParam, recipientsCount: recipients.length });
     return Response.json({ ok: true });
   } catch (error: any) {
     console.error('Custom email error:', error);
