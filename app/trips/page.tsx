@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SubmitInvoiceButton } from "@/components/SubmitInvoiceButton";
+import { DisputeButton } from "@/components/DisputeButton";
 
 // Ensure this page is never cached and always shows fresh data
 export const dynamic = 'force-dynamic';
@@ -80,9 +82,26 @@ export default async function TripsListPage() {
     }
   }
 
+  const currentMonth = earningsByPeriod ? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` : '';
+
   return (
     <div className="stack">
       <h2>My Trips{userWithGuide?.guide ? ` - ${userWithGuide.guide.name}` : ''}</h2>
+
+      {/* Invoice and Dispute Buttons for Guides */}
+      {userWithGuide?.guideId && earningsByPeriod && (
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div style={{ flex: 1, minWidth: 300 }}>
+            <SubmitInvoiceButton />
+          </div>
+          <DisputeButton
+            guideName={userWithGuide.guide?.name || ''}
+            month={currentMonth}
+            tripCount={earningsByPeriod.tripCountThisMonth}
+            totalEarnings={earningsByPeriod.thisMonth}
+          />
+        </div>
+      )}
 
       {/* Earnings Summary for Guides */}
       {earningsByPeriod && (
