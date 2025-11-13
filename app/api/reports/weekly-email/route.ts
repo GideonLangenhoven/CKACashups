@@ -230,12 +230,11 @@ export async function GET(req: NextRequest) {
   const tripDetailsBody: any[] = [
     [
       { text: 'Date', bold: true, fillColor: '#f1f5f9' },
-      { text: 'Time', bold: true, fillColor: '#f1f5f9' },
       { text: 'Lead', bold: true, fillColor: '#f1f5f9' },
       { text: 'Pax', bold: true, fillColor: '#f1f5f9' },
-      { text: 'Guides', bold: true, fillColor: '#f1f5f9' },
-      { text: 'Total', bold: true, fillColor: '#f1f5f9' },
-      { text: 'Running Total', bold: true, fillColor: '#f1f5f9' }
+      { text: 'Trip Guides', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Cash Received', bold: true, fillColor: '#f1f5f9' },
+      { text: 'Trip Report', bold: true, fillColor: '#f1f5f9' }
     ]
   ];
 
@@ -274,38 +273,24 @@ export async function GET(req: NextRequest) {
           { text: 'No trips logged', color: '#94a3b8', italics: true },
           '-',
           '-',
-          'R 0.00',
-          `R ${runningTotal.toFixed(2)}`
+          '-'
         ]);
       }
     } else {
       // Add all trips for this date
       for (const t of tripsOnDate) {
-        const counts = {
-          SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
-          INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
-          JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
-        };
-        const totalPayments = (
-          parseFloat(t.payments?.cashReceived?.toString() || '0') +
-          parseFloat(t.payments?.creditCards?.toString() || '0') +
-          parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
-          parseFloat(t.payments?.vouchers?.toString() || '0') +
-          parseFloat(t.payments?.members?.toString() || '0') +
-          parseFloat(t.payments?.agentsToInvoice?.toString() || '0') +
-          parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
-          parseFloat(t.payments?.discountsTotal?.toString() || '0')
-        );
-        runningTotal += totalPayments;
-        const submittedTime = new Date(t.createdAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false });
+        const guideNames = t.guides.map((g: any) => g.guide.name).join(', ');
+        const cashReceived = parseFloat(t.payments?.cashReceived?.toString() || '0');
+        const cashReceivedText = cashReceived > 0 ? `Yes - R ${cashReceived.toFixed(2)}` : 'No';
+        const tripReport = t.tripReport || '-';
+
         tripDetailsBody.push([
           new Date(t.tripDate).toISOString().slice(0,10),
-          submittedTime,
           t.leadName,
           t.totalPax.toString(),
-          `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
-          `R ${totalPayments.toFixed(2)}`,
-          `R ${runningTotal.toFixed(2)}`
+          guideNames,
+          cashReceivedText,
+          { text: tripReport, fontSize: 8 }
         ]);
       }
     }
@@ -314,7 +299,7 @@ export async function GET(req: NextRequest) {
   content.push({
     table: {
       headerRows: 1,
-      widths: ['auto', 'auto', '*', 'auto', 'auto', 'auto', 'auto'],
+      widths: ['auto', 'auto', 'auto', '*', 'auto', '*'],
       body: tripDetailsBody
     },
     layout: {
@@ -385,36 +370,24 @@ export async function GET(req: NextRequest) {
     { header: 'Date', key: 'date', width: 12 },
     { header: 'Lead', key: 'leadName', width: 20 },
     { header: 'Pax', key: 'pax', width: 10 },
-    { header: 'Guides', key: 'guides', width: 15 },
-    { header: 'Total', key: 'total', width: 12 },
-    { header: 'Running Total', key: 'runningTotal', width: 15 }
+    { header: 'Trip Guides', key: 'tripGuides', width: 30 },
+    { header: 'Cash Received', key: 'cashReceived', width: 18 },
+    { header: 'Trip Report', key: 'tripReport', width: 50 }
   ];
 
-  let excelRunningTotal = 0;
   for (const t of trips) {
-    const counts = {
-      SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length,
-      INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
-      JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
-    };
-    const totalPayments = (
-      parseFloat(t.payments?.cashReceived?.toString() || '0') +
-      parseFloat(t.payments?.creditCards?.toString() || '0') +
-      parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
-      parseFloat(t.payments?.vouchers?.toString() || '0') +
-      parseFloat(t.payments?.members?.toString() || '0') +
-      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') -
-      parseFloat(t.payments?.discountsTotal?.toString() || '0')
-    );
-    excelRunningTotal += totalPayments;
+    const guideNames = t.guides.map((g: any) => g.guide.name).join(', ');
+    const cashReceived = parseFloat(t.payments?.cashReceived?.toString() || '0');
+    const cashReceivedText = cashReceived > 0 ? `Yes - R ${cashReceived.toFixed(2)}` : 'No';
+    const tripReport = t.tripReport || '-';
 
     detailWs.addRow({
       date: new Date(t.tripDate).toISOString().slice(0,10),
       leadName: t.leadName,
       pax: t.totalPax,
-      guides: `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
-      total: totalPayments.toFixed(2),
-      runningTotal: excelRunningTotal.toFixed(2)
+      tripGuides: guideNames,
+      cashReceived: cashReceivedText,
+      tripReport: tripReport
     });
   }
 
