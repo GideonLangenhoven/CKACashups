@@ -278,25 +278,25 @@ export default function NewTripPage() {
                 No
               </label>
             </div>
-            {(cashReceived !== "" && parseFloat(cashReceived || "0") >= 0) && (
-              <div style={{ marginTop: '16px' }}>
-                <label className="label" style={{ marginBottom: 6, display: 'block' }}>Amount received (R)</label>
-                <input
-                  className="input"
-                  inputMode="decimal"
-                  value={cashReceived}
-                  onChange={e=>setCashReceived(e.target.value)}
-                  placeholder="Enter amount"
-                  style={{ maxWidth: '300px' }}
-                />
+            <div style={{ marginTop: '16px' }}>
+              <label className="label" style={{ marginBottom: 6, display: 'block' }}>Amount</label>
+              <input
+                className="input"
+                inputMode="decimal"
+                value={cashReceived}
+                onChange={e=>setCashReceived(e.target.value)}
+                placeholder="Enter amount"
+                style={{ maxWidth: '300px' }}
+              />
+              {cashReceived && parseFloat(cashReceived || "0") > 0 && (
                 <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '4px', maxWidth: '300px' }}>
                   <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '4px' }}>Total cash received:</div>
                   <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#333' }}>
                     R {parseFloat(cashReceived || "0").toFixed(2)}
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
           <div className="section-title">Additional Checks</div>
           <label className="row"><input type="checkbox" checked={paymentsMadeYN} onChange={e=>setPaymentsMadeYN(e.target.checked)} /> All payments in Activitar</label>
