@@ -38,10 +38,7 @@ export default async function TripsListPage() {
   });
   return (
     <div className="stack">
-      <div className="row" style={{ justifyContent: 'space-between' }}>
-        <h2>My Trips</h2>
-        <Link className="btn" href="/trips/new">New Cash Up</Link>
-      </div>
+      <h2>My Trips</h2>
       {trips.map((t: any) => {
         // Find this guide's earnings if user is linked to a guide
         const myGuideAssignment = userWithGuide?.guideId

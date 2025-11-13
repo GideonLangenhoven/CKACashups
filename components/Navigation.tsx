@@ -61,8 +61,15 @@ export function Navigation() {
         <div style={{ display: "none", marginRight: "-5rem" }} className="desktop-nav">
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
             <Link
+              href="/trips/new"
+              className="btn"
+              style={{ textDecoration: "none" }}
+            >
+              New Cash Up
+            </Link>
+            <Link
               href="/trips"
-              className={isActive("/trips") ? "btn" : "btn ghost"}
+              className={isActive("/trips") || isActive("/earnings") ? "btn" : "btn ghost"}
               style={{ textDecoration: "none" }}
             >
               My Trips
@@ -118,8 +125,16 @@ export function Navigation() {
           }}
         >
           <Link
+            href="/trips/new"
+            className="btn"
+            style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
+            onClick={() => setMenuOpen(false)}
+          >
+            New Cash Up
+          </Link>
+          <Link
             href="/trips"
-            className={isActive("/trips") ? "btn" : "btn ghost"}
+            className={isActive("/trips") || isActive("/earnings") ? "btn" : "btn ghost"}
             style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
             onClick={() => setMenuOpen(false)}
           >
