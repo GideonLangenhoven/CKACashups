@@ -37,14 +37,14 @@ export function SubmitInvoiceButton() {
   };
 
   return (
-    <div className="card" style={{ background: '#f8fafc', border: '2px solid #0A66C2' }}>
-      <div style={{ marginBottom: 12 }}>
-        <strong style={{ fontSize: '1.1rem', color: '#0A66C2' }}>Submit Invoice</strong>
+    <div className="card" style={{ background: 'rgba(240, 249, 255, 0.9)', border: '1px solid rgba(10, 102, 194, 0.2)' }}>
+      <div style={{ marginBottom: 12, fontWeight: 600, color: '#0A66C2', fontSize: '1.1rem' }}>
+        Submit Invoice
       </div>
-      <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#64748b' }}>
+      <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#475569' }}>
         Generate and submit your monthly invoice to admin. The invoice will include all trips, weekly breakdowns, and total earnings for the selected month.
       </p>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="row" style={{ alignItems: 'flex-end' }}>
         <div style={{ flex: '1', minWidth: 200 }}>
           <label className="label" style={{ marginBottom: 6 }}>Select Month</label>
           <input
@@ -56,19 +56,16 @@ export function SubmitInvoiceButton() {
             max={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`}
           />
         </div>
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="btn"
-          style={{
-            marginTop: 22,
-            background: '#059669',
-            color: 'white',
-            minWidth: 180
-          }}
-        >
-          {loading ? 'Submitting...' : '📧 Submit Invoice'}
-        </button>
+        <div style={{ minWidth: 180 }}>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="btn sunset mobile-full"
+            style={{ marginTop: 22 }}
+          >
+            {loading ? 'Submitting...' : '📧 Submit Invoice'}
+          </button>
+        </div>
       </div>
     </div>
   );

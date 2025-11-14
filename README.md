@@ -26,7 +26,7 @@ Features
 QA automation
 - `npm run qa:guide-journey` replays the guide workflow end-to-end. It requires `DATABASE_URL` to point at the Neon (or other) database and will:
   1. Pick two active guides with linked accounts
-  2. Create a temporary trip as the admin user, verifying guide earnings and “My Trips” tallies
+  2. Create a temporary trip as the admin user, verifying guide earnings and “My Earnings” tallies
   3. Snapshot monthly reporting totals
   4. Clean up the QA trip so production data stays unchanged
 - Use it after schema/data changes to prove guides can be added to trips and invoice totals/reporting stay correct.

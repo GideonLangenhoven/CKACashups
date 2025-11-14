@@ -30,7 +30,7 @@ async function simulateGuideLogin(guideEmail: string) {
     return;
   }
 
-  // Step 2: Get trips (this is what My Trips page does)
+  // Step 2: Get trips (this is what My Earnings page does)
   const trips = await prisma.trip.findMany({
     where: {
       OR: [
@@ -114,7 +114,7 @@ async function simulateGuideLogin(guideEmail: string) {
   console.log(`  This Year: R ${earningsByPeriod.thisYear.toFixed(2)} (${earningsByPeriod.tripCountThisYear} trips)`);
   console.log(`  All Time: R ${earningsByPeriod.allTime.toFixed(2)} (${earningsByPeriod.tripCountAllTime} trips)`);
 
-  console.log(`\n✓ PAGE HEADER SHOULD SHOW: "My Trips - ${user.guide?.name}"`);
+  console.log(`\n✓ PAGE HEADER SHOULD SHOW: "My Earnings - ${user.guide?.name}"`);
 }
 
 async function main() {

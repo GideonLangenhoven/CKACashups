@@ -112,10 +112,10 @@ export default async function TripsListPage() {
 
   return (
     <div className="stack">
-      <h2>My Trips - {userWithGuide.guide?.name}</h2>
+      <h2>My Earnings - {userWithGuide.guide?.name}</h2>
 
-      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, minWidth: 300 }}>
+      <div className="row mobile-align-start" style={{ alignItems: 'stretch' }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
           <SubmitInvoiceButton />
         </div>
         <DisputeButton
@@ -126,43 +126,35 @@ export default async function TripsListPage() {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-        <div className="card">
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4 }}>Today</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>
-            R {earningsByPeriod.today.toFixed(2)}
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>
+      <div className="metrics-grid">
+        <div className="metric-card" data-variant="sunset">
+          <div className="metric-label">Today</div>
+          <div className="metric-value">R {earningsByPeriod.today.toFixed(2)}</div>
+          <div className="metric-subtext">
             {earningsByPeriod.tripCountToday} {earningsByPeriod.tripCountToday === 1 ? 'trip' : 'trips'}
           </div>
         </div>
 
-        <div className="card">
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4 }}>This Month</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>
-            R {earningsByPeriod.thisMonth.toFixed(2)}
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>
+        <div className="metric-card" data-variant="sunset">
+          <div className="metric-label">This Month</div>
+          <div className="metric-value">R {earningsByPeriod.thisMonth.toFixed(2)}</div>
+          <div className="metric-subtext">
             {earningsByPeriod.tripCountThisMonth} {earningsByPeriod.tripCountThisMonth === 1 ? 'trip' : 'trips'}
           </div>
         </div>
 
-        <div className="card">
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4 }}>This Year</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>
-            R {earningsByPeriod.thisYear.toFixed(2)}
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>
+        <div className="metric-card">
+          <div className="metric-label">This Year</div>
+          <div className="metric-value">R {earningsByPeriod.thisYear.toFixed(2)}</div>
+          <div className="metric-subtext">
             {earningsByPeriod.tripCountThisYear} {earningsByPeriod.tripCountThisYear === 1 ? 'trip' : 'trips'}
           </div>
         </div>
 
-        <div className="card">
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4 }}>All Time</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>
-            R {earningsByPeriod.allTime.toFixed(2)}
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 4 }}>
+        <div className="metric-card">
+          <div className="metric-label">All Time</div>
+          <div className="metric-value">R {earningsByPeriod.allTime.toFixed(2)}</div>
+          <div className="metric-subtext">
             {earningsByPeriod.tripCountAllTime} {earningsByPeriod.tripCountAllTime === 1 ? 'trip' : 'trips'}
           </div>
         </div>

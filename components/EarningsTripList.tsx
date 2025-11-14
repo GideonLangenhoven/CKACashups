@@ -37,60 +37,32 @@ export function EarningsTripList({ trips: initialTrips, guideId }: EarningsTripL
       {initialTrips.length === 0 ? (
         <p style={{ color: '#64748b' }}>No trips found.</p>
       ) : (
-        <div className="stack">
+        <div className="trip-list">
           {initialTrips.slice(0, 10).map((trip) => {
             const myEarnings = parseFloat(trip.guides[0]?.feeAmount?.toString() || '0');
             const isTripLeader = trip.tripLeaderId === guideId;
+            const statusClass =
+              trip.status === 'APPROVED' ? 'pill success' :
+              trip.status === 'SUBMITTED' ? 'pill info' :
+              trip.status === 'REJECTED' ? 'pill warning' :
+              'pill';
 
             return (
-              <div
-                key={trip.id}
-                style={{
-                  padding: 12,
-                  border: '1px solid #e5e5e5',
-                  borderRadius: 6,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  backgroundColor: trip.status === 'SUBMITTED' ? '#f0f9ff' : trip.status === 'APPROVED' ? '#f0fdf4' : undefined,
-                  borderLeft: trip.status === 'SUBMITTED' ? '4px solid #3b82f6' : trip.status === 'APPROVED' ? '4px solid #22c55e' : undefined
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 500 }}>
+              <div className="trip-item" key={trip.id}>
+                <div className="trip-meta">
+                  <div style={{ fontWeight: 600 }}>
                     {new Date(trip.tripDate).toLocaleDateString()} — {trip.leadName}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span>{trip.totalPax} pax</span>
-                    <span style={{
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      backgroundColor:
-                        trip.status === 'APPROVED' ? '#dcfce7' :
-                        trip.status === 'SUBMITTED' ? '#dbeafe' :
-                        trip.status === 'DRAFT' ? '#fef3c7' :
-                        trip.status === 'REJECTED' ? '#fee2e2' :
-                        '#f3f4f6',
-                      color:
-                        trip.status === 'APPROVED' ? '#166534' :
-                        trip.status === 'SUBMITTED' ? '#1e40af' :
-                        trip.status === 'DRAFT' ? '#854d0e' :
-                        trip.status === 'REJECTED' ? '#991b1b' :
-                        '#374151'
-                    }}>
-                      {trip.status}
-                    </span>
-                    {isTripLeader && <span style={{ color: '#0A66C2' }}>Trip Leader</span>}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
+                    <span className="pill info">{trip.totalPax} pax</span>
+                    <span className={statusClass}>{trip.status}</span>
+                    {isTripLeader && <span className="pill success">Trip Leader</span>}
                   </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#059669', textAlign: 'right' }}>
-                    R {myEarnings.toFixed(2)}
-                  </div>
+                  <div className="trip-amount">R {myEarnings.toFixed(2)}</div>
                   {trip.status === 'SUBMITTED' && (
-                    <div style={{ fontSize: '0.75rem', color: '#3b82f6', marginTop: 4, textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#1d4ed8', marginTop: 4, textAlign: 'right' }}>
                       Pending Approval
                     </div>
                   )}

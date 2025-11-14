@@ -7,7 +7,7 @@ import { csrfFetch } from "@/lib/client/csrfFetch";
 export default function SignIn() {
   const router = useRouter();
   const { user, loading: sessionLoading, refreshSession } = useSession();
-  const redirectAfterLogin = "/trips"; // Send users to My Trips (guides will auto-redirect to earnings)
+  const redirectAfterLogin = "/trips"; // Unified My Earnings page lives at /trips
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");

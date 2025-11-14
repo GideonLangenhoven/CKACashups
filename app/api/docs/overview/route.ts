@@ -24,7 +24,7 @@ export async function GET(_req: NextRequest) {
     "Local draft auto-save and restore (per browser)",
     "Discount lines + discounts total computed",
     "Per-guide fee calculation using FeeRate (PER_TRIP + PER_PAX)",
-    "My Trips list and detail views",
+    "My Earnings list and detail views",
     "Single-trip PDF export from detail page",
     "Admin: Guides (add/deactivate), All Trips (status updates)",
     "Reports: Daily/Monthly/Yearly — PDF and Excel downloads",
@@ -44,7 +44,7 @@ export async function GET(_req: NextRequest) {
     "Step 1: Choose trip date/time, enter lead name, optional notes",
     "Step 2: Select guides by rank and enter total pax",
     "Step 3: Capture payments (cash, cards, EFTs, vouchers, members, agents), add discounts, set flags, add suggestions",
-    "Submit to create a Trip; view it in My Trips",
+    "Submit to create a Trip; view it in My Earnings",
     "Open trip detail to review and optionally Download PDF",
   ]});
 

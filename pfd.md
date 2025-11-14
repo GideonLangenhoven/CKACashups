@@ -24,7 +24,7 @@ The system features two primary roles with Role-Based Access Control (RBAC) enfo
     * **Access:** Authenticated login using a registered email and name. A "forgot/reset name" flow is available. Post-login, users are redirected to the "New Cash Up" page.
     * **Permissions:**
         * Submit new cash-up forms using the multi-step wizard.
-        * View a history of their own past submissions ("My Trips").
+        * View a history of their own past submissions ("My Earnings").
         * Download a PDF export for any single trip they have submitted.
 
 ### **3. Functional Requirements & Features**

@@ -13,7 +13,7 @@ When someone signs in with their name and email:
 - If found, it links that guide to the user account
 - The user can now see ALL trips where they were a guide
 
-### 2. **"My Trips" Shows:**
+### 2. **"My Earnings" Shows:**
 
 For regular users (guides):
 - ✅ Trips they created themselves
@@ -73,7 +73,7 @@ As an admin, when you add a guide in `/admin/guides`:
 **Use Case 2: Someone logs a trip for a junior guide**
 1. Trip creator adds "John Smith" as a guide
 2. When John Smith logs in (with any email), system auto-links him
-3. John can see the trip in "My Trips"
+3. John can see the trip in "My Earnings"
 
 **Use Case 3: Pre-create accounts for new guides**
 1. Admin adds guide with email: "newguide@email.com"
@@ -84,7 +84,7 @@ As an admin, when you add a guide in `/admin/guides`:
 
 **Test 1 - Verify existing behavior:**
 1. Log in as yourself
-2. Go to "My Trips"
+2. Go to "My Earnings"
 3. You should see trips you created
 
 **Test 2 - Create new guide with email:**
@@ -93,12 +93,12 @@ As an admin, when you add a guide in `/admin/guides`:
 3. Log out
 4. Log in with "test@example.com" and name "Test Guide"
 5. Create a trip and add yourself as a guide
-6. Check "My Trips" - you should see it
+6. Check "My Earnings" - you should see it
 
 **Test 3 - Have someone else add you as guide:**
 1. Have another user create a trip
 2. They add your name as a guide
-3. Log in - trip should appear in "My Trips"
+3. Log in - trip should appear in "My Earnings"
 
 ## Production URLs
 
@@ -108,7 +108,7 @@ As an admin, when you add a guide in `/admin/guides`:
 ## Summary
 
 ✅ Guides automatically get accounts when added with email
-✅ Guides see their own trips in "My Trips"
+✅ Guides see their own trips in "My Earnings"
 ✅ Name matching works - signing in with matching name links to guide
 ✅ No manual work needed for most cases
 ✅ Backward compatible - existing system still works

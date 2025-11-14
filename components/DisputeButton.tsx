@@ -54,11 +54,8 @@ export function DisputeButton({ guideName, month, tripCount, totalEarnings }: Di
     return (
       <button
         onClick={() => setShowForm(true)}
-        className="btn ghost"
-        style={{
-          color: '#dc2626',
-          borderColor: '#dc2626'
-        }}
+        className="btn sunset"
+        style={{ minWidth: 180 }}
       >
         ⚠️ Dispute Trips
       </button>
@@ -66,11 +63,11 @@ export function DisputeButton({ guideName, month, tripCount, totalEarnings }: Di
   }
 
   return (
-    <div className="card" style={{ background: '#fef2f2', border: '2px solid #dc2626' }}>
-      <div style={{ marginBottom: 12 }}>
-        <strong style={{ fontSize: '1.1rem', color: '#dc2626' }}>Dispute Trip Count</strong>
+    <div className="card" style={{ background: 'rgba(255, 247, 237, 0.9)', border: '1px solid rgba(249, 115, 22, 0.25)' }}>
+      <div style={{ marginBottom: 12, color: '#b45309', fontWeight: 600 }}>
+        Dispute Trip Count
       </div>
-      <div style={{ marginBottom: 16, fontSize: '0.9rem', color: '#991b1b' }}>
+      <div style={{ marginBottom: 16, fontSize: '0.9rem', color: '#92400e' }}>
         <p style={{ margin: '0 0 8px 0' }}>
           <strong>Current Summary:</strong>
         </p>
@@ -96,12 +93,11 @@ export function DisputeButton({ guideName, month, tripCount, totalEarnings }: Di
           required
         />
 
-        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
           <button
             type="submit"
             disabled={loading}
-            className="btn"
-            style={{ background: '#dc2626', color: 'white' }}
+            className="btn sunset mobile-full"
           >
             {loading ? 'Submitting...' : 'Submit Dispute'}
           </button>
@@ -112,7 +108,7 @@ export function DisputeButton({ guideName, month, tripCount, totalEarnings }: Di
               setReason("");
             }}
             disabled={loading}
-            className="btn ghost"
+            className="btn ghost mobile-full"
           >
             Cancel
           </button>

@@ -74,7 +74,7 @@ export function Navigation() {
                 className={isActive("/trips") ? "btn" : "btn ghost"}
                 style={{ textDecoration: "none" }}
               >
-                My Trips
+                My Earnings
               </Link>
             )}
             {isAdmin && (
@@ -142,7 +142,7 @@ export function Navigation() {
               style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
               onClick={() => setMenuOpen(false)}
             >
-              My Trips
+              My Earnings
             </Link>
           )}
           {isAdmin && (
