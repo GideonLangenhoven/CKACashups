@@ -130,7 +130,7 @@ export async function createUserSession(email: string, name?: string): Promise<S
       guideId: matchingGuide?.id
     },
     update: {
-      role: isAdminEmail ? 'ADMIN' : undefined,
+      role: isAdminEmail ? 'ADMIN' : 'USER',  // Always update role based on current admin emails list
       active: true,
       name: matchingGuide?.name || undefined,  // Update name to match guide
       guideId: matchingGuide?.id || undefined
