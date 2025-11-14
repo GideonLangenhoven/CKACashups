@@ -31,6 +31,7 @@ export function Navigation() {
   }
 
   const isActive = (path: string) => pathname?.startsWith(path);
+  const isAdmin = user.role === "ADMIN";
 
   return (
     <nav style={{
@@ -67,7 +68,7 @@ export function Navigation() {
             >
               New Cash Up
             </Link>
-            {!(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
+            {!isAdmin && (
               <Link
                 href="/trips"
                 className={isActive("/trips") ? "btn" : "btn ghost"}
@@ -76,7 +77,7 @@ export function Navigation() {
                 My Trips
               </Link>
             )}
-            {(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
+            {isAdmin && (
               <Link
                 href="/admin"
                 className={isActive("/admin") ? "btn" : "btn ghost"}
@@ -134,7 +135,7 @@ export function Navigation() {
           >
             New Cash Up
           </Link>
-          {!(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
+          {!isAdmin && (
             <Link
               href="/trips"
               className={isActive("/trips") ? "btn" : "btn ghost"}
@@ -144,7 +145,7 @@ export function Navigation() {
               My Trips
             </Link>
           )}
-          {(user.email === "gidslang89@gmail.com" || user.email === "info@kayak.co.za") && (
+          {isAdmin && (
             <Link
               href="/admin"
               className={isActive("/admin") ? "btn" : "btn ghost"}
