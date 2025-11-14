@@ -7,7 +7,6 @@ import { csrfFetch } from "@/lib/client/csrfFetch";
 export default function SignIn() {
   const router = useRouter();
   const { user, loading: sessionLoading, refreshSession } = useSession();
-  const redirectAfterLogin = "/trips"; // Unified My Earnings page lives at /trips
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -36,7 +35,9 @@ export default function SignIn() {
 
       if (res.ok) {
         await refreshSession();
-        router.push(redirectAfterLogin);
+        // Redirect based on user role - admins go to /admin, others go to /trips
+        const redirectPath = data.user?.role === "ADMIN" ? "/admin" : "/trips";
+        router.push(redirectPath);
         router.refresh();
       } else {
         setError(data.error || "Sign-in failed");
@@ -48,11 +49,12 @@ export default function SignIn() {
     }
   };
 
-  // If already signed in, bounce to new cash up directly
+  // If already signed in, redirect based on role
   if (!sessionLoading && user) {
     // Render nothing and redirect
     if (typeof window !== "undefined") {
-      router.replace(redirectAfterLogin);
+      const redirectPath = user.role === "ADMIN" ? "/admin" : "/trips";
+      router.replace(redirectPath);
     }
   }
 

@@ -1,12 +1,16 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
+import { getServerSession } from "@/lib/session";
 
 export default async function Home() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth-token");
+  const user = await getServerSession();
 
-  if (!token) {
+  if (!user) {
     redirect("/auth/signin");
+  }
+
+  // Redirect based on user role
+  if (user.role === "ADMIN") {
+    redirect("/admin");
   }
 
   redirect("/trips/new");
