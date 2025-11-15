@@ -1,4 +1,11 @@
+import fs from "fs";
+import path from "path";
 import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/sendMail";
+import { logEvent } from "@/lib/log";
+import { alertReportFailure } from "@/lib/alerts";
+import { withRetry } from "@/lib/utils/retry";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -13,17 +20,11 @@ function parseMonth(month: string) {
 }
 
 export async function GET(req: NextRequest) {
-  try {
-    // Dynamic imports to avoid build-time bundling issues
-    const { prisma } = await import("@/lib/prisma");
-    const { sendEmail } = await import("@/lib/sendMail");
-    const { logEvent } = await import("@/lib/log");
-    const { alertReportFailure } = await import("@/lib/alerts");
-    const fs = await import('fs');
-    const path = await import('path');
+  const { searchParams } = new URL(req.url);
+  const requestedMonth = searchParams.get('month') || new Date().toISOString().slice(0,7);
 
-    const { searchParams } = new URL(req.url);
-    const month = searchParams.get('month') || new Date().toISOString().slice(0,7);
+  try {
+    const month = requestedMonth;
     const { start, end } = parseMonth(month);
   const trips = await prisma.trip.findMany({
     where: { tripDate: { gte: start, lte: end } },
@@ -342,7 +343,7 @@ export async function GET(req: NextRequest) {
   const recipients = (process.env.ADMIN_EMAILS || '').split(',').map(e=>e.trim()).filter(Boolean);
   if (!recipients.length) return new Response('No ADMIN_EMAILS configured', { status: 500 });
 
-  await sendEmail({
+  await withRetry(() => sendEmail({
     to: recipients,
     subject: `Monthly Cash Ups Report — ${month}`,
     html: `<p>Attached are the PDF and Excel monthly reports for ${month} (${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}).</p>`,
@@ -350,20 +351,15 @@ export async function GET(req: NextRequest) {
       { filename: `cashups-${month}.pdf`, content: pdf, contentType: 'application/pdf' },
       { filename: `cashups-${month}.xlsx`, content: Buffer.from(xlsBuf), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
     ]
-  });
+  }), 2, 750);
 
     logEvent('report_monthly_email_sent', { month, recipientsCount: recipients.length });
     return Response.json({ ok: true });
   } catch (error: any) {
     console.error('Monthly email error:', error);
 
-    // Send alert about report failure
-    const { alertReportFailure } = await import("@/lib/alerts");
-    const { searchParams } = new URL(req.url);
-    const month = searchParams.get('month') || new Date().toISOString().slice(0,7);
-
     await alertReportFailure('Monthly', error, {
-      month,
+      month: requestedMonth,
       endpoint: '/api/reports/monthly-email'
     }).catch(console.error);
 

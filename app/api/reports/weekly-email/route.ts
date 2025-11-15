@@ -1,4 +1,11 @@
+import fs from "fs";
+import path from "path";
 import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/sendMail";
+import { logEvent } from "@/lib/log";
+import { alertReportFailure } from "@/lib/alerts";
+import { withRetry } from "@/lib/utils/retry";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -55,17 +62,11 @@ function getPreviousWeek(): string {
 }
 
 export async function GET(req: NextRequest) {
-  try {
-    // Dynamic imports to avoid build-time bundling issues
-    const { prisma } = await import("@/lib/prisma");
-    const { sendEmail } = await import("@/lib/sendMail");
-    const { logEvent } = await import("@/lib/log");
-    const { alertReportFailure } = await import("@/lib/alerts");
-    const fs = await import('fs');
-    const path = await import('path');
+  const { searchParams } = new URL(req.url);
+  const requestedWeek = searchParams.get('week') || getPreviousWeek();
 
-    const { searchParams } = new URL(req.url);
-    const week = searchParams.get('week') || getPreviousWeek();
+  try {
+    const week = requestedWeek;
     const { start, end } = parseWeek(week);
 
   const trips = await prisma.trip.findMany({
@@ -397,7 +398,7 @@ export async function GET(req: NextRequest) {
   const recipients = (process.env.ADMIN_EMAILS || '').split(',').map(e=>e.trim()).filter(Boolean);
   if (!recipients.length) return new Response('No ADMIN_EMAILS configured', { status: 500 });
 
-  await sendEmail({
+  await withRetry(() => sendEmail({
     to: recipients,
     subject: `Weekly Cash Ups Report — ${week}`,
     html: `<p>Attached are the PDF and Excel weekly reports for ${week} (${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}).</p>`,
@@ -405,20 +406,15 @@ export async function GET(req: NextRequest) {
       { filename: `cashups-${week}.pdf`, content: pdf, contentType: 'application/pdf' },
       { filename: `cashups-${week}.xlsx`, content: Buffer.from(xlsBuf), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
     ]
-  });
+  }), 2, 750);
 
     logEvent('report_weekly_email_sent', { week, recipientsCount: recipients.length });
     return Response.json({ ok: true });
   } catch (error: any) {
     console.error('Weekly email error:', error);
 
-    // Send alert about report failure
-    const { alertReportFailure } = await import("@/lib/alerts");
-    const { searchParams } = new URL(req.url);
-    const week = searchParams.get('week') || getPreviousWeek();
-
     await alertReportFailure('Weekly', error, {
-      week,
+      week: requestedWeek,
       endpoint: '/api/reports/weekly-email'
     }).catch(console.error);
 

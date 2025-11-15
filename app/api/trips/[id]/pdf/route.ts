@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "@/lib/session";
 import { NextRequest } from "next/server";
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+  const session = await getServerSession();
+  if (!session?.id) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const trip = await prisma.trip.findUnique({
     where: { id: params.id },
     include: {
@@ -12,6 +18,24 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     },
   });
   if (!trip) return new Response("Not found", { status: 404 });
+
+  const isAdmin = session.role === "ADMIN";
+  const isCreator = session.id === trip.createdById;
+  let isAssignedGuide = false;
+
+  if (!isAdmin && !isCreator) {
+    const viewer = await prisma.user.findUnique({
+      where: { id: session.id },
+      select: { guideId: true },
+    });
+    if (viewer?.guideId) {
+      isAssignedGuide = trip.guides.some((g: any) => g.guideId === viewer.guideId);
+    }
+  }
+
+  if (!isAdmin && !isCreator && !isAssignedGuide) {
+    return new Response("Forbidden", { status: 403 });
+  }
 
   const dateStr = new Date(trip.tripDate).toISOString().slice(0, 10);
 
@@ -87,4 +111,3 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     },
   });
 }
-

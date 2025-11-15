@@ -135,12 +135,14 @@ main {
 
 .btn:hover {
   background: var(--brand-hover);
+  color: #fff;
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
 
 .btn:active {
   background: var(--brand-active);
+  color: #fff;
   transform: translateY(0);
   box-shadow: var(--shadow-sm);
 }
@@ -183,6 +185,7 @@ main {
 
 .btn.ghost:active {
   background: #d6e8f5;
+  color: var(--brand-active);
   transform: translateY(0);
 }
 
@@ -192,8 +195,8 @@ main {
   box-shadow: 0 15px 35px rgba(249, 115, 22, 0.28);
 }
 
-.btn.sunset:hover { background: var(--sunset-hover); }
-.btn.sunset:active { background: var(--sunset-active); }
+.btn.sunset:hover { background: var(--sunset-hover); color: #fff; }
+.btn.sunset:active { background: var(--sunset-active); color: #fff; }
 
 /* Enhanced Inputs */
 .input {

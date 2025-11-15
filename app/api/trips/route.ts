@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import { NextRequest } from "next/server";
 import { logEvent } from "@/lib/log";
+import { tripCreateSchema } from "@/lib/validation";
 
 export async function GET(req: NextRequest) {
   const user = await getServerSession();
@@ -50,10 +51,35 @@ export async function POST(req: NextRequest) {
     const user = await getServerSession();
     if (!user?.id) return new Response('Unauthorized', { status: 401 });
     const body = await req.json();
-    const { tripDate, leadName, paxGuideNote, totalPax, tripLeaderId, paymentsMadeYN, picsUploadedYN, tripEmailSentYN, tripReport, suggestions, status, guides, payments, discounts } = body;
-    if (!tripDate || !leadName) return new Response('tripDate and leadName required', { status: 400 });
+    const parsed = tripCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({
+        error: 'Invalid trip payload',
+        details: parsed.error.flatten()
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
-    let guideIds: string[] = (guides || []).map((g: any) => g.guideId);
+    const {
+      tripDate,
+      leadName,
+      paxGuideNote,
+      totalPax,
+      tripLeaderId,
+      paymentsMadeYN,
+      picsUploadedYN,
+      tripEmailSentYN,
+      tripReport,
+      suggestions,
+      status,
+      guides,
+      payments,
+      discounts
+    } = parsed.data;
+
+    let guideIds: string[] = guides.map((g) => g.guideId);
 
     // Validate trip leader can only be SENIOR or INTERMEDIATE
     if (tripLeaderId) {
@@ -80,18 +106,18 @@ export async function POST(req: NextRequest) {
       data: {
         tripDate: new Date(tripDate),
         leadName,
-        paxGuideNote,
+        paxGuideNote: paxGuideNote || undefined,
         totalPax,
         tripLeaderId: tripLeaderId || undefined,
         paymentsMadeYN: !!paymentsMadeYN,
         picsUploadedYN: !!picsUploadedYN,
         tripEmailSentYN: !!tripEmailSentYN,
-        tripReport,
-        suggestions,
+        tripReport: tripReport || undefined,
+        suggestions: suggestions || undefined,
         status: status || 'DRAFT',
         createdById: user.id,
         payments: payments ? { create: payments } : undefined,
-        discounts: discounts && discounts.length ? { create: discounts.map((d: any) => ({ amount: d.amount, reason: d.reason })) } : undefined,
+        discounts: discounts && discounts.length ? { create: discounts.map((d) => ({ amount: d.amount, reason: d.reason })) } : undefined,
         guides: guideIds && guideIds.length ? { create: guideIds.map((guideId) => {
           const guide = dbGuides.find((x: any) => x.id === guideId);
           if (!guide) throw new Error(`Guide not found: ${guideId}`);

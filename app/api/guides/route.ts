@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
+import { guideCreateSchema } from "@/lib/validation";
 
 import { NextRequest } from "next/server";
 
@@ -19,11 +20,19 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession();
     if (!session || session.role !== 'ADMIN') return new Response('Forbidden', { status: 403 });
   	const body = await req.json();
-    const { name, rank, email } = body;
-    if (!name || !rank) return new Response('Name and rank required', { status: 400 });
-    const normalizedEmail = typeof email === 'string' && email.trim().length > 0
-      ? email.toLowerCase().trim()
-      : null;
+    const parsed = guideCreateSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({
+        error: 'Invalid guide payload',
+        details: parsed.error.flatten()
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    const { name, rank, email } = parsed.data;
+    const normalizedEmail = email ?? null;
 
     console.log(`[Guide Create] Starting creation for: ${name}, rank: ${rank}, email: ${email || 'none'}`);
 

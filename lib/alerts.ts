@@ -1,6 +1,16 @@
 import { sendEmail } from "./sendMail";
 
-const ALERT_EMAIL = "gidslang89@gmail.com";
+function getAlertRecipients(): string[] {
+  const configured =
+    process.env.ALERT_EMAILS ||
+    process.env.ADMIN_EMAILS ||
+    "";
+
+  return configured
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
 
 export type AlertType =
   | "DATABASE_ERROR"
@@ -92,13 +102,17 @@ export async function sendAlert(options: AlertOptions): Promise<void> {
 </html>
     `.trim();
 
-    await sendEmail({
-      to: [ALERT_EMAIL],
-      subject: `🚨 CKA Alert: ${type.replace(/_/g, ' ')} - ${title}`,
-      html: emailBody
-    });
-
-    console.log(`[ALERT SENT] ${type}: ${title}`);
+    const recipients = getAlertRecipients();
+    if (!recipients.length) {
+      console.warn("[ALERT] No ALERT_EMAILS or ADMIN_EMAILS configured; skipping alert email");
+    } else {
+      await sendEmail({
+        to: recipients,
+        subject: `🚨 CKA Alert: ${type.replace(/_/g, ' ')} - ${title}`,
+        html: emailBody
+      });
+      console.log(`[ALERT SENT] ${type}: ${title}`);
+    }
   } catch (alertError) {
     // If sending alert fails, log to console as fallback
     console.error('[ALERT SYSTEM FAILURE] Could not send alert email:', alertError);

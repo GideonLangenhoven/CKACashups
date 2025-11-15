@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import { sendEmail } from "@/lib/sendMail";
 import { logEvent } from "@/lib/log";
+import { guideInvoiceSchema } from "@/lib/validation";
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -32,10 +33,18 @@ export async function POST(req: NextRequest) {
       return new Response('You are not linked to a guide profile', { status: 403 });
     }
 
-    const { month } = await req.json(); // Format: YYYY-MM
-    if (!month) {
-      return new Response('Month is required', { status: 400 });
+    const rawBody = await req.json();
+    const parsed = guideInvoiceSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({
+        error: 'Invalid request body',
+        details: parsed.error.flatten()
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
+    const { month } = parsed.data;
 
     const [year, monthNum] = month.split('-').map(Number);
     const startDate = new Date(Date.UTC(year, monthNum - 1, 1));

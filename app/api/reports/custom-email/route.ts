@@ -1,5 +1,12 @@
+import fs from "fs";
+import path from "path";
 import { NextRequest } from "next/server";
 import { getServerSession } from "@/lib/session";
+import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/sendMail";
+import { logEvent } from "@/lib/log";
+import { alertReportFailure } from "@/lib/alerts";
+import { withRetry } from "@/lib/utils/retry";
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -33,13 +40,6 @@ export async function GET(req: NextRequest) {
     if (session.role !== 'ADMIN') {
       return new Response('Forbidden', { status: 403 });
     }
-
-    // Dynamic imports to avoid build-time bundling issues
-    const { prisma } = await import("@/lib/prisma");
-    const { sendEmail } = await import("@/lib/sendMail");
-    const { logEvent } = await import("@/lib/log");
-    const fs = await import('fs');
-    const path = await import('path');
 
     const { searchParams } = new URL(req.url);
     const startParam = searchParams.get('start');
@@ -248,7 +248,7 @@ export async function GET(req: NextRequest) {
     const recipients = (process.env.ADMIN_EMAILS || '').split(',').map(e=>e.trim()).filter(Boolean);
     if (!recipients.length) return new Response('No ADMIN_EMAILS configured', { status: 500 });
 
-    await sendEmail({
+    await withRetry(() => sendEmail({
       to: recipients,
       subject: `Custom Date Range Cash Ups Report — ${startParam} to ${endParam}`,
       html: `<p>Attached are the PDF and Excel reports for custom date range ${startParam} to ${endParam}.</p>`,
@@ -256,7 +256,7 @@ export async function GET(req: NextRequest) {
         { filename: `cashups-${startParam}-to-${endParam}.pdf`, content: pdf, contentType: 'application/pdf' },
         { filename: `cashups-${startParam}-to-${endParam}.xlsx`, content: Buffer.from(xlsBuf), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
       ]
-    });
+    }), 2, 750);
 
     logEvent('report_custom_email_sent', { start: startParam, end: endParam, recipientsCount: recipients.length });
     return Response.json({ ok: true });
@@ -264,11 +264,6 @@ export async function GET(req: NextRequest) {
     console.error('Custom email error:', error);
 
     // Send alert about report failure
-    const { alertReportFailure } = await import("@/lib/alerts");
-    const { searchParams } = new URL(req.url);
-    const startParam = searchParams.get('start');
-    const endParam = searchParams.get('end');
-
     await alertReportFailure('Custom Date Range', error, {
       start: startParam,
       end: endParam,
