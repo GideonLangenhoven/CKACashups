@@ -64,7 +64,7 @@ export function Navigation() {
             <Link
               href="/trips/new"
               className="btn"
-              style={{ textDecoration: "none" }}
+              style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
             >
               New Cash Up
             </Link>
@@ -72,7 +72,7 @@ export function Navigation() {
               <Link
                 href="/trips"
                 className={isActive("/trips") ? "btn" : "btn ghost"}
-                style={{ textDecoration: "none" }}
+                style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
               >
                 My Earnings
               </Link>
@@ -81,13 +81,13 @@ export function Navigation() {
               <Link
                 href="/admin"
                 className={isActive("/admin") ? "btn" : "btn ghost"}
-                style={{ textDecoration: "none" }}
+                style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
               >
                 Admin
               </Link>
             )}
             <span style={{ color: "#666", fontSize: "0.9rem" }}>{user.email}</span>
-            <button onClick={signOut} className="btn ghost">
+            <button onClick={signOut} className="btn ghost" style={{ minWidth: "100px", textAlign: "center" }}>
               Sign Out
             </button>
           </div>
@@ -124,13 +124,13 @@ export function Navigation() {
             padding: "1rem",
             background: "#f9f9f9",
             borderRadius: "8px",
-            alignItems: "flex-start"
+            alignItems: "stretch"
           }}
         >
           <Link
             href="/trips/new"
             className="btn"
-            style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
+            style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
             onClick={() => setMenuOpen(false)}
           >
             New Cash Up
@@ -139,7 +139,7 @@ export function Navigation() {
             <Link
               href="/trips"
               className={isActive("/trips") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
+              style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               My Earnings
@@ -149,7 +149,7 @@ export function Navigation() {
             <Link
               href="/admin"
               className={isActive("/admin") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", width: "auto", textAlign: "left" }}
+              style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               Admin
@@ -158,7 +158,7 @@ export function Navigation() {
           <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", width: "100%", textAlign: "left" }}>
             {user.email}
           </div>
-          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "auto", textAlign: "left" }}>
+          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "100%", textAlign: "center" }}>
             Sign Out
           </button>
         </div>
