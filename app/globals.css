@@ -110,7 +110,7 @@ main {
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
-  z-index: 0;
+  isolation: isolate;
 }
 
 .btn::before {
@@ -125,6 +125,7 @@ main {
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
   z-index: -1;
+  pointer-events: none;
 }
 
 .btn:hover::before {
