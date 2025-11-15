@@ -110,6 +110,7 @@ main {
   box-shadow: var(--shadow-sm);
   position: relative;
   overflow: hidden;
+  z-index: 0;
 }
 
 .btn::before {
@@ -123,6 +124,7 @@ main {
   background: rgba(255, 255, 255, 0.2);
   transform: translate(-50%, -50%);
   transition: width 0.6s, height 0.6s;
+  z-index: -1;
 }
 
 .btn:hover::before {
