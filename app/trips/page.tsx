@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "@/lib/session";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SubmitInvoiceButton } from "@/components/SubmitInvoiceButton";
 import { DisputeButton } from "@/components/DisputeButton";
 import { EarningsTripList } from "@/components/EarningsTripList";
@@ -37,14 +38,7 @@ export default async function TripsListPage() {
 
   // Admins should use the admin dashboard, not the trips page
   if (userWithGuide?.role === 'ADMIN') {
-    return (
-      <div className="stack">
-        <div className="card">
-          <h3>Access Restricted</h3>
-          <p>This page is for guides only. As an admin, please use the <Link href="/admin">Admin Dashboard</Link> to manage trips and guides.</p>
-        </div>
-      </div>
-    );
+    redirect('/admin');
   }
 
   if (!userWithGuide?.guideId) {
