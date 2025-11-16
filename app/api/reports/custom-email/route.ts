@@ -32,6 +32,9 @@ function parseDateParam(value: string | null, type: "start" | "end") {
 }
 
 export async function GET(req: NextRequest) {
+  let startParam: string | null = null;
+  let endParam: string | null = null;
+
   try {
     const session = await getServerSession();
     if (!session?.id) {
@@ -42,8 +45,9 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const startParam = searchParams.get('start');
-    const endParam = searchParams.get('end');
+    // Assign to function-scoped variables
+    startParam = searchParams.get('start');
+    endParam = searchParams.get('end');
 
     let startDate: Date;
     let endDate: Date;
