@@ -306,25 +306,45 @@ export async function POST(req: NextRequest) {
     const adminEmails = (process.env.ADMIN_EMAILS || 'gidslang89@gmail.com,info@kayak.co.za')
       .split(',').map(e => e.trim()).filter(Boolean);
 
-    await sendEmail({
-      to: adminEmails,
-      subject: `Invoice from ${userWithGuide.guide.name} - ${month}`,
-      html: `
-        <h2>Guide Invoice Submission</h2>
-        <p><strong>Guide:</strong> ${userWithGuide.guide.name} (${userWithGuide.guide.rank})</p>
-        <p><strong>Period:</strong> ${month}</p>
-        <p><strong>Total Trips:</strong> ${monthlyTripCount}</p>
-        <p><strong>Total Earnings:</strong> R ${monthlyTotal.toFixed(2)}</p>
-        <p>Please find the detailed invoice attached.</p>
-      `,
-      attachments: [
-        {
-          filename: `invoice-${userWithGuide.guide.name.replace(/\s+/g, '-')}-${month}.pdf`,
-          content: pdf,
-          contentType: 'application/pdf'
-        }
-      ]
+    console.log('[INVOICE] Attempting to send email...');
+    console.log('[INVOICE] Admin emails:', adminEmails);
+    console.log('[INVOICE] SMTP configured:', {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      user: process.env.SMTP_USER ? '***' : undefined,
+      pass: process.env.SMTP_PASS ? '***' : undefined
     });
+
+    try {
+      await sendEmail({
+        to: adminEmails,
+        subject: `Invoice from ${userWithGuide.guide.name} - ${month}`,
+        html: `
+          <h2>Guide Invoice Submission</h2>
+          <p><strong>Guide:</strong> ${userWithGuide.guide.name} (${userWithGuide.guide.rank})</p>
+          <p><strong>Period:</strong> ${month}</p>
+          <p><strong>Total Trips:</strong> ${monthlyTripCount}</p>
+          <p><strong>Total Earnings:</strong> R ${monthlyTotal.toFixed(2)}</p>
+          <p>Please find the detailed invoice attached.</p>
+        `,
+        attachments: [
+          {
+            filename: `invoice-${userWithGuide.guide.name.replace(/\s+/g, '-')}-${month}.pdf`,
+            content: pdf,
+            contentType: 'application/pdf'
+          }
+        ]
+      });
+      console.log('[INVOICE] Email sent successfully!');
+    } catch (emailError: any) {
+      console.error('[INVOICE] Email sending failed:', {
+        error: emailError.message,
+        code: emailError.code,
+        command: emailError.command,
+        stack: emailError.stack
+      });
+      throw emailError;
+    }
 
     logEvent('guide_invoice_submitted', {
       guideId: userWithGuide.guideId,
@@ -342,8 +362,26 @@ export async function POST(req: NextRequest) {
       totalEarnings: monthlyTotal
     });
   } catch (error: any) {
-    console.error('Submit invoice error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('[INVOICE] Submit invoice error:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      errno: error.errno,
+      syscall: error.syscall,
+      hostname: error.hostname,
+      stack: error.stack
+    });
+
+    // Return detailed error info for debugging
+    return new Response(JSON.stringify({
+      error: error.message,
+      code: error.code,
+      details: {
+        errno: error.errno,
+        syscall: error.syscall,
+        hostname: error.hostname
+      }
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

@@ -14,6 +14,7 @@ export function SubmitInvoiceButton() {
       return;
     }
 
+    console.log('[INVOICE SUBMIT] Starting invoice submission for month:', selectedMonth);
     setLoading(true);
     try {
       const res = await csrfFetch('/api/guides/submit-invoice', {
@@ -22,15 +23,22 @@ export function SubmitInvoiceButton() {
         body: JSON.stringify({ month: selectedMonth })
       });
 
+      console.log('[INVOICE SUBMIT] Response status:', res.status);
+
       const data = await res.json();
+      console.log('[INVOICE SUBMIT] Response data:', data);
 
       if (res.ok) {
+        console.log('[INVOICE SUBMIT] ✓ Success!');
         alert(`✓ Invoice submitted successfully!\n\nTrips: ${data.tripCount}\nTotal Earnings: R ${data.totalEarnings?.toFixed(2)}\n\nThe invoice has been sent to the admin email.`);
       } else {
-        alert(`Error: ${data.error || 'Failed to submit invoice'}`);
+        console.error('[INVOICE SUBMIT] ✗ Failed:', data);
+        const errorDetails = data.details ? JSON.stringify(data.details, null, 2) : '';
+        alert(`Error: ${data.error || 'Failed to submit invoice'}\n\nCode: ${data.code || 'N/A'}\n${errorDetails ? '\nDetails:\n' + errorDetails : ''}\n\nCheck browser console for full error details.`);
       }
     } catch (err: any) {
-      alert(`Error: ${err.message || 'Failed to submit invoice'}`);
+      console.error('[INVOICE SUBMIT] ✗ Exception:', err);
+      alert(`Error: ${err.message || 'Failed to submit invoice'}\n\nCheck browser console for full error details.`);
     } finally {
       setLoading(false);
     }
