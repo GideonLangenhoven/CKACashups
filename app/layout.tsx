@@ -6,12 +6,6 @@ export const metadata = {
   title: "CKA Cashups",
   description: "Cash ups tracking and reporting for CKA guides",
   manifest: "/manifest.json",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -24,6 +18,13 @@ export const metadata = {
     icon: "/CKAlogo.png",
     apple: "/CKAlogo.png",
   },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

@@ -36,9 +36,9 @@ export default function SignIn() {
       if (res.ok) {
         // Redirect based on user role - admins go to /admin, others go to /trips
         const redirectPath = data.user?.role === "ADMIN" ? "/admin" : "/trips";
-        // Use full page navigation with timestamp to ensure fresh load
-        // This prevents caching issues and ensures session is properly loaded
-        window.location.href = `${redirectPath}?t=${Date.now()}`;
+        // Use replace instead of href to prevent back button issues
+        // and ensure clean navigation state
+        window.location.replace(redirectPath);
       } else {
         setError(data.error || "Sign-in failed");
         setSubmitting(false);
