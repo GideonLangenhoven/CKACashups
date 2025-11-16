@@ -8,10 +8,11 @@ type Attachment = { filename: string; content: Buffer; contentType: string };
 
 export async function sendEmail({ to, subject, html, attachments }: { to: string[]; subject: string; html: string; attachments?: Attachment[] }) {
   // Check for SMTP configuration (Gmail)
-  const smtpHost = process.env.SMTP_HOST;
-  const smtpPort = process.env.SMTP_PORT;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  // IMPORTANT: Trim all env vars to remove any whitespace/newlines
+  const smtpHost = process.env.SMTP_HOST?.trim();
+  const smtpPort = process.env.SMTP_PORT?.trim();
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim();
 
   if (smtpHost && smtpPort && smtpUser && smtpPass) {
     // Use SMTP (Gmail or other)
