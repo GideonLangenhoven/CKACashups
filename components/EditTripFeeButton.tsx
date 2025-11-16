@@ -88,7 +88,8 @@ export function EditTripFeeButton({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1000
+        zIndex: 1000,
+        padding: '16px'
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -102,9 +103,10 @@ export function EditTripFeeButton({
         className="card"
         style={{
           maxWidth: 500,
-          width: '90%',
-          maxHeight: '90vh',
-          overflow: 'auto'
+          width: '100%',
+          maxHeight: 'calc(100vh - 32px)',
+          overflow: 'auto',
+          margin: 'auto'
         }}
         onClick={(e) => e.stopPropagation()}
       >
