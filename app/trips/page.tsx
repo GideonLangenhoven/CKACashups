@@ -24,7 +24,10 @@ export async function generateMetadata() {
 
 export default async function TripsListPage() {
   const user = await getServerSession();
-  if (!user?.id) return <div>Please <Link href="/auth/signin">sign in</Link>.</div>;
+
+  if (!user?.id) {
+    redirect('/auth/signin');
+  }
 
   // Get user's guide info and role
   const userWithGuide = await prisma.user.findUnique({

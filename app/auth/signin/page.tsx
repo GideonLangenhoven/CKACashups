@@ -37,8 +37,8 @@ export default function SignIn() {
         await refreshSession();
         // Redirect based on user role - admins go to /admin, others go to /trips
         const redirectPath = data.user?.role === "ADMIN" ? "/admin" : "/trips";
-        router.push(redirectPath);
-        router.refresh();
+        // Use full page navigation to ensure session is properly loaded
+        window.location.href = redirectPath;
       } else {
         setError(data.error || "Sign-in failed");
         setSubmitting(false);
@@ -54,8 +54,9 @@ export default function SignIn() {
     // Render nothing and redirect
     if (typeof window !== "undefined") {
       const redirectPath = user.role === "ADMIN" ? "/admin" : "/trips";
-      router.replace(redirectPath);
+      window.location.href = redirectPath;
     }
+    return null;
   }
 
   return (

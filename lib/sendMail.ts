@@ -20,6 +20,8 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
         user: smtpUser,
         pass: smtpPass,
       },
+      // Force IPv4 to avoid DNS resolution issues
+      family: 4,
       dnsTimeout: 30000,
       tls: {
         rejectUnauthorized: true,
@@ -28,8 +30,12 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
       // Add connection timeout
       connectionTimeout: 30000,
       greetingTimeout: 30000,
-      socketTimeout: 30000
-    });
+      socketTimeout: 30000,
+      // Use Node's built-in DNS resolver
+      dns: {
+        resolve4First: true
+      }
+    } as any);
 
     const mailOptions = {
       from: `"CKA Cash Ups" <${smtpUser}>`,

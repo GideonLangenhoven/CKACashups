@@ -17,9 +17,12 @@ export const metadata = {
     statusBarStyle: "default",
     title: "CKA Cashups",
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
   icons: {
-    icon: "/wave.png",
-    apple: "/wave.png",
+    icon: "/CKAlogo.png",
+    apple: "/CKAlogo.png",
   },
 };
 
@@ -29,10 +32,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content={process.env.BRAND_PRIMARY || "#0A66C2"} />
-        <link rel="apple-touch-icon" href="/wave.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/wave.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/wave.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/wave.png" />
+        <link rel="apple-touch-icon" href="/CKAlogo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/CKAlogo.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/CKAlogo.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/CKAlogo.png" />
       </head>
       <body>
         <ClientLayout>{children}</ClientLayout>

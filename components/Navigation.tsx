@@ -61,13 +61,15 @@ export function Navigation() {
         {/* Desktop Navigation */}
         <div style={{ display: "none", marginRight: "-5rem" }} className="desktop-nav">
           <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-            <Link
-              href="/trips/new"
-              className="btn"
-              style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
-            >
-              New Cash Up
-            </Link>
+            {!isAdmin && (
+              <Link
+                href="/trips/new"
+                className="btn"
+                style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
+              >
+                New Cash Up
+              </Link>
+            )}
             {!isAdmin && (
               <Link
                 href="/trips"
@@ -127,14 +129,16 @@ export function Navigation() {
             alignItems: "stretch"
           }}
         >
-          <Link
-            href="/trips/new"
-            className="btn"
-            style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
-            onClick={() => setMenuOpen(false)}
-          >
-            New Cash Up
-          </Link>
+          {!isAdmin && (
+            <Link
+              href="/trips/new"
+              className="btn"
+              style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
+              onClick={() => setMenuOpen(false)}
+            >
+              New Cash Up
+            </Link>
+          )}
           {!isAdmin && (
             <Link
               href="/trips"
