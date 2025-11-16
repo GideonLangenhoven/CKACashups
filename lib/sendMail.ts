@@ -1,4 +1,8 @@
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+import { promisify } from 'util';
+
+const resolve4 = promisify(dns.resolve4);
 
 type Attachment = { filename: string; content: Buffer; contentType: string };
 
@@ -12,8 +16,22 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
   if (smtpHost && smtpPort && smtpUser && smtpPass) {
     // Use SMTP (Gmail or other)
     const port = parseInt(smtpPort);
+
+    // Pre-resolve the SMTP host to IPv4 address to avoid DNS issues
+    let resolvedHost = smtpHost;
+    try {
+      const addresses = await resolve4(smtpHost);
+      if (addresses && addresses.length > 0) {
+        resolvedHost = addresses[0];
+        console.log(`Resolved ${smtpHost} to ${resolvedHost}`);
+      }
+    } catch (dnsError) {
+      console.warn(`DNS resolution failed for ${smtpHost}, using hostname directly:`, dnsError);
+      // Continue with hostname if DNS resolution fails
+    }
+
     const transporter = nodemailer.createTransport({
-      host: smtpHost,
+      host: resolvedHost,
       port: port,
       secure: port === 465, // true for 465, false for other ports (use STARTTLS)
       auth: {
@@ -25,16 +43,14 @@ export async function sendEmail({ to, subject, html, attachments }: { to: string
       dnsTimeout: 30000,
       tls: {
         rejectUnauthorized: true,
-        minVersion: 'TLSv1.2'
+        minVersion: 'TLSv1.2',
+        // Use servername for TLS if we resolved to IP
+        servername: smtpHost
       },
       // Add connection timeout
       connectionTimeout: 30000,
       greetingTimeout: 30000,
-      socketTimeout: 30000,
-      // Use Node's built-in DNS resolver
-      dns: {
-        resolve4First: true
-      }
+      socketTimeout: 30000
     } as any);
 
     const mailOptions = {
