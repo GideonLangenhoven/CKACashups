@@ -81,6 +81,15 @@ export function Navigation() {
             )}
             {isAdmin && (
               <Link
+                href="/admin/cashup/new"
+                className="btn"
+                style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
+              >
+                New Cash Up
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
                 href="/admin"
                 className={isActive("/admin") ? "btn" : "btn ghost"}
                 style={{ textDecoration: "none", minWidth: "140px", textAlign: "center" }}
@@ -120,20 +129,19 @@ export function Navigation() {
           style={{
             display: "none",
             flexDirection: "column",
-            gap: "0.5rem",
+            gap: "0.75rem",
             marginTop: "1rem",
-            marginRight: "-5rem",
             padding: "1rem",
             background: "#f9f9f9",
             borderRadius: "8px",
-            alignItems: "stretch"
+            alignItems: "center"
           }}
         >
           {!isAdmin && (
             <Link
               href="/trips/new"
               className="btn"
-              style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
+              style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               New Cash Up
@@ -143,7 +151,7 @@ export function Navigation() {
             <Link
               href="/trips"
               className={isActive("/trips") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
+              style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               My Earnings
@@ -151,18 +159,28 @@ export function Navigation() {
           )}
           {isAdmin && (
             <Link
+              href="/admin/cashup/new"
+              className="btn"
+              style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
+              onClick={() => setMenuOpen(false)}
+            >
+              New Cash Up
+            </Link>
+          )}
+          {isAdmin && (
+            <Link
               href="/admin"
               className={isActive("/admin") ? "btn" : "btn ghost"}
-              style={{ textDecoration: "none", width: "100%", textAlign: "center" }}
+              style={{ textDecoration: "none", maxWidth: "280px", width: "100%", textAlign: "center" }}
               onClick={() => setMenuOpen(false)}
             >
               Admin
             </Link>
           )}
-          <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", width: "100%", textAlign: "left" }}>
+          <div style={{ padding: "0.5rem", color: "#666", fontSize: "0.85rem", borderTop: "1px solid #ddd", marginTop: "0.5rem", paddingTop: "0.75rem", maxWidth: "280px", width: "100%", textAlign: "center" }}>
             {user.email}
           </div>
-          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ width: "100%", textAlign: "center" }}>
+          <button onClick={() => { signOut(); setMenuOpen(false); }} className="btn ghost" style={{ maxWidth: "280px", width: "100%", textAlign: "center" }}>
             Sign Out
           </button>
         </div>
