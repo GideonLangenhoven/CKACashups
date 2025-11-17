@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    const { month } = parsed.data;
+    const { month, tipsReceived } = parsed.data;
 
     const [year, monthNum] = month.split('-').map(Number);
     const startDate = new Date(Date.UTC(year, monthNum - 1, 1));
@@ -81,6 +81,7 @@ export async function POST(req: NextRequest) {
     const weeklyTotals = new Map<string, { trips: number; earnings: number }>();
     let monthlyTotal = 0;
     let monthlyTripCount = 0;
+    const tips = tipsReceived || 0;
 
     for (const trip of trips) {
       const earnings = parseFloat(trip.guides[0]?.feeAmount?.toString() || '0');
@@ -249,6 +250,29 @@ export async function POST(req: NextRequest) {
     );
 
     // Total
+    const totalWithTips = monthlyTotal + tips;
+    const totalBody: any[] = [];
+
+    if (tips > 0) {
+      totalBody.push([
+        { text: 'Trip Earnings:', fontSize: 11, alignment: 'right', border: [false, true, false, false] },
+        { text: `R ${monthlyTotal.toFixed(2)}`, fontSize: 11, alignment: 'right', border: [false, true, false, false] }
+      ]);
+      totalBody.push([
+        { text: 'Tips Received:', fontSize: 11, alignment: 'right', border: [false, false, false, false] },
+        { text: `R ${tips.toFixed(2)}`, fontSize: 11, alignment: 'right', border: [false, false, false, false] }
+      ]);
+      totalBody.push([
+        { text: 'TOTAL EARNINGS:', bold: true, fontSize: 12, alignment: 'right', border: [false, true, false, false] },
+        { text: `R ${totalWithTips.toFixed(2)}`, bold: true, fontSize: 14, color: '#059669', alignment: 'right', border: [false, true, false, false] }
+      ]);
+    } else {
+      totalBody.push([
+        { text: 'TOTAL EARNINGS:', bold: true, fontSize: 12, alignment: 'right', border: [false, true, false, false] },
+        { text: `R ${monthlyTotal.toFixed(2)}`, bold: true, fontSize: 14, color: '#059669', alignment: 'right', border: [false, true, false, false] }
+      ]);
+    }
+
     content.push(
       {
         columns: [
@@ -257,15 +281,10 @@ export async function POST(req: NextRequest) {
             width: 'auto',
             table: {
               widths: ['auto', 'auto'],
-              body: [
-                [
-                  { text: 'TOTAL EARNINGS:', bold: true, fontSize: 12, alignment: 'right', border: [false, true, false, false] },
-                  { text: `R ${monthlyTotal.toFixed(2)}`, bold: true, fontSize: 14, color: '#059669', alignment: 'right', border: [false, true, false, false] }
-                ]
-              ]
+              body: totalBody
             },
             layout: {
-              hLineWidth: (i: number) => i === 0 ? 2 : 0,
+              hLineWidth: (i: number) => i === 0 || i === totalBody.length - 1 ? 2 : 0,
               hLineColor: () => '#059669',
               paddingLeft: () => 8,
               paddingRight: () => 8,
@@ -302,9 +321,10 @@ export async function POST(req: NextRequest) {
     });
     const pdf = Buffer.concat(pdfChunks);
 
-    // Send email to admin
-    const adminEmails = (process.env.ADMIN_EMAILS || 'gidslang89@gmail.com,info@kayak.co.za')
+    // Send email to admin (deduplicate to avoid sending multiple emails to the same address)
+    const adminEmailsRaw = (process.env.ADMIN_EMAILS || 'gidslang89@gmail.com')
       .split(',').map(e => e.trim()).filter(Boolean);
+    const adminEmails = [...new Set(adminEmailsRaw)]; // Remove duplicates
 
     console.log('[INVOICE] Attempting to send email...');
     console.log('[INVOICE] Admin emails:', adminEmails);
@@ -324,7 +344,9 @@ export async function POST(req: NextRequest) {
           <p><strong>Guide:</strong> ${userWithGuide.guide.name} (${userWithGuide.guide.rank})</p>
           <p><strong>Period:</strong> ${month}</p>
           <p><strong>Total Trips:</strong> ${monthlyTripCount}</p>
-          <p><strong>Total Earnings:</strong> R ${monthlyTotal.toFixed(2)}</p>
+          <p><strong>Trip Earnings:</strong> R ${monthlyTotal.toFixed(2)}</p>
+          ${tips > 0 ? `<p><strong>Tips Received:</strong> R ${tips.toFixed(2)}</p>` : ''}
+          <p><strong>Total Earnings:</strong> R ${(monthlyTotal + tips).toFixed(2)}</p>
           <p>Please find the detailed invoice attached.</p>
         `,
         attachments: [
@@ -359,7 +381,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: `Invoice for ${month} submitted successfully`,
       tripCount: monthlyTripCount,
-      totalEarnings: monthlyTotal
+      totalEarnings: monthlyTotal + tips
     });
   } catch (error: any) {
     console.error('[INVOICE] Submit invoice error:', {

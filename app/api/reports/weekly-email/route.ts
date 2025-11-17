@@ -243,7 +243,14 @@ export async function GET(req: NextRequest) {
   // Build a map of all dates in the week with trips
   const tripsByDate = new Map<string, any[]>();
   for (const trip of trips) {
-    const dateStr = new Date(trip.tripDate).toISOString().slice(0,10);
+    // Ensure we use UTC date to avoid timezone issues
+    const tripDateObj = new Date(trip.tripDate);
+    const dateStr = new Date(Date.UTC(
+      tripDateObj.getUTCFullYear(),
+      tripDateObj.getUTCMonth(),
+      tripDateObj.getUTCDate()
+    )).toISOString().slice(0,10);
+
     if (!tripsByDate.has(dateStr)) {
       tripsByDate.set(dateStr, []);
     }

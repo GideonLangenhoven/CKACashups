@@ -8,9 +8,11 @@ export function SubmitInvoiceButton() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
+  const [tipsReceived, setTipsReceived] = useState<string>("");
 
   const handleSubmit = async () => {
-    if (!confirm(`Submit invoice for ${selectedMonth}?\n\nThis will send your invoice to the admin email.`)) {
+    const tips = parseFloat(tipsReceived || "0");
+    if (!confirm(`Submit invoice for ${selectedMonth}?\n${tips > 0 ? `Tips: R ${tips.toFixed(2)}\n` : ''}This will send your invoice to the admin email.`)) {
       return;
     }
 
@@ -20,7 +22,7 @@ export function SubmitInvoiceButton() {
       const res = await csrfFetch('/api/guides/submit-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ month: selectedMonth })
+        body: JSON.stringify({ month: selectedMonth, tipsReceived: tips })
       });
 
       console.log('[INVOICE SUBMIT] Response status:', res.status);
@@ -52,24 +54,38 @@ export function SubmitInvoiceButton() {
       <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#475569' }}>
         Generate and submit your monthly invoice to admin. The invoice will include all trips, weekly breakdowns, and total earnings for the selected month.
       </p>
-      <div className="row" style={{ alignItems: 'flex-end' }}>
-        <div style={{ flex: '1', minWidth: 200 }}>
-          <label className="label" style={{ marginBottom: 6 }}>Select Month</label>
-          <input
-            type="month"
-            className="input"
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            disabled={loading}
-            max={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`}
-          />
+      <div className="stack" style={{ gap: '16px' }}>
+        <div className="row" style={{ gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1', minWidth: 200 }}>
+            <label className="label" style={{ marginBottom: 6 }}>Select Month</label>
+            <input
+              type="month"
+              className="input"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              disabled={loading}
+              max={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`}
+            />
+          </div>
+          <div style={{ flex: '1', minWidth: 200 }}>
+            <label className="label" style={{ marginBottom: 6 }}>Tips Received (optional)</label>
+            <input
+              type="number"
+              className="input"
+              value={tipsReceived}
+              onChange={(e) => setTipsReceived(e.target.value)}
+              disabled={loading}
+              placeholder="0.00"
+              min="0"
+              step="0.01"
+            />
+          </div>
         </div>
-        <div style={{ minWidth: 180 }}>
+        <div>
           <button
             onClick={handleSubmit}
             disabled={loading}
             className="btn sunset mobile-full"
-            style={{ marginTop: 22 }}
           >
             {loading ? 'Submitting...' : '📧 Submit Invoice'}
           </button>

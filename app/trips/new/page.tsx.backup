@@ -1,13 +1,21 @@
-"use client";
-import { useEffect, useMemo, useState } from "react";
-import DatePicker from "@/components/DatePicker";
-import TimePicker from "@/components/TimePicker";
-import { todayLocalISODate } from "@/lib/time";
-import { csrfFetch } from "@/lib/client/csrfFetch";
+import { getServerSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import NewTripForm from "./NewTripForm";
 
-type Guide = { id: string; name: string; rank: "SENIOR"|"INTERMEDIATE"|"JUNIOR"|"TRAINEE" };
+export default async function NewTripPage() {
+  const user = await getServerSession();
 
-export default function NewTripForm() {
+  if (!user) {
+    redirect("/auth/signin");
+  }
+
+  // Admins should use the admin dashboard to create trips
+  if (user.role === "ADMIN") {
+    redirect("/admin");
+  }
+
+  return <NewTripForm />;
+}
   const [step, setStep] = useState(1);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [loadingGuides, setLoadingGuides] = useState(true);
@@ -253,8 +261,7 @@ export default function NewTripForm() {
 
       {step === 3 && (
         <div className="stack">
-          <div className="section-title">Cash received</div>
-          <div style={{ fontSize: '0.9rem', color: '#666', marginBottom: '16px' }}>including water, pouches and tips received</div>
+          <div className="section-title">Payments</div>
           <div style={{ marginBottom: '20px' }}>
             <label className="label" style={{ marginBottom: 12, display: 'block' }}>Cash received?</label>
             <div className="row" style={{ gap: '16px', marginBottom: '16px' }}>

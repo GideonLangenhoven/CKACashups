@@ -102,4 +102,5 @@ export const guideInvoiceSchema = z.object({
   month: z
     .string()
     .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Month must be in YYYY-MM format"),
+  tipsReceived: numberLike({ min: 0 }).optional().default(0),
 });

@@ -63,22 +63,11 @@ export async function GET(req: NextRequest) {
     { text: `${month} (${start.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)})`, style: 'subheader', alignment: 'center', margin: [0, 0, 0, 20] }
   );
 
-  // Calculate totals for summary
+  // Calculate totals for summary (cash only)
   const totalTrips = trips.length;
   const totalCashCollected = trips.reduce((sum, t) => sum + parseFloat(t.payments?.cashReceived?.toString() || '0'), 0);
-  const totalAllPayments = trips.reduce((sum, t) => {
-    return sum +
-      parseFloat(t.payments?.cashReceived?.toString() || '0') +
-      parseFloat(t.payments?.creditCards?.toString() || '0') +
-      parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
-      parseFloat(t.payments?.vouchers?.toString() || '0') +
-      parseFloat(t.payments?.members?.toString() || '0') +
-      parseFloat(t.payments?.agentsToInvoice?.toString() || '0') +
-      parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
-      parseFloat(t.payments?.discountsTotal?.toString() || '0');
-  }, 0);
 
-  // Calculate weekly totals
+  // Calculate weekly cash totals
   const weeklyTotals = new Map<string, number>();
   for (const trip of trips) {
     const tripDate = new Date(trip.tripDate);
@@ -91,15 +80,8 @@ export async function GET(req: NextRequest) {
     const weekNum = Math.floor(diffDays / 7) + 1;
     const weekKey = `${tripDate.getUTCFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
 
-    const total = parseFloat(trip.payments?.cashReceived?.toString() || '0') +
-      parseFloat(trip.payments?.creditCards?.toString() || '0') +
-      parseFloat(trip.payments?.onlineEFTs?.toString() || '0') +
-      parseFloat(trip.payments?.vouchers?.toString() || '0') +
-      parseFloat(trip.payments?.members?.toString() || '0') +
-      parseFloat(trip.payments?.agentsToInvoice?.toString() || '0') +
-      parseFloat(trip.payments?.waterPhoneSunblock?.toString() || '0') -
-      parseFloat(trip.payments?.discountsTotal?.toString() || '0');
-    weeklyTotals.set(weekKey, (weeklyTotals.get(weekKey) || 0) + total);
+    const cashReceived = parseFloat(trip.payments?.cashReceived?.toString() || '0');
+    weeklyTotals.set(weekKey, (weeklyTotals.get(weekKey) || 0) + cashReceived);
   }
 
   // Add summary statistics in top left
@@ -111,9 +93,8 @@ export async function GET(req: NextRequest) {
           { text: 'Period Summary', style: 'summaryHeader', margin: [0, 0, 0, 8] },
           { text: `Report Date: ${new Date().toISOString().slice(0, 10)}`, style: 'summaryText' },
           { text: `Total Trips: ${totalTrips}`, style: 'summaryText' },
-          { text: `Total Cash Collected: R ${totalCashCollected.toFixed(2)}`, style: 'summaryText' },
-          { text: `Total All Payments: R ${totalAllPayments.toFixed(2)}`, style: 'summaryText', margin: [0, 0, 0, 8] },
-          { text: 'Weekly Breakdown:', style: 'summarySubheader', margin: [0, 4, 0, 4] },
+          { text: `Total Cash Collected: R ${totalCashCollected.toFixed(2)}`, style: 'summaryText', margin: [0, 0, 0, 8] },
+          { text: 'Weekly Cash Breakdown:', style: 'summarySubheader', margin: [0, 4, 0, 4] },
           ...Array.from(weeklyTotals.entries()).sort().map(([week, total]) => ({
             text: `${week}: R ${total.toFixed(2)}`,
             style: 'summaryText',
@@ -199,14 +180,21 @@ export async function GET(req: NextRequest) {
     { text: 'Lead', bold: true, fillColor: '#f1f5f9' },
     { text: 'Pax', bold: true, fillColor: '#f1f5f9' },
     { text: 'Guides', bold: true, fillColor: '#f1f5f9' },
-    { text: 'Total', bold: true, fillColor: '#f1f5f9' },
+    { text: 'Cash Received', bold: true, fillColor: '#f1f5f9' },
     { text: 'Running Total', bold: true, fillColor: '#f1f5f9' }
   ]];
 
   // Build a map of all dates in the month with trips
   const tripsByDate = new Map<string, any[]>();
   for (const trip of trips) {
-    const dateStr = new Date(trip.tripDate).toISOString().slice(0,10);
+    // Ensure we use UTC date to avoid timezone issues
+    const tripDateObj = new Date(trip.tripDate);
+    const dateStr = new Date(Date.UTC(
+      tripDateObj.getUTCFullYear(),
+      tripDateObj.getUTCMonth(),
+      tripDateObj.getUTCDate()
+    )).toISOString().slice(0,10);
+
     if (!tripsByDate.has(dateStr)) {
       tripsByDate.set(dateStr, []);
     }
@@ -250,17 +238,8 @@ export async function GET(req: NextRequest) {
           INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length,
           JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length,
         };
-        const totalPayments = (
-          parseFloat(t.payments?.cashReceived?.toString() || '0') +
-          parseFloat(t.payments?.creditCards?.toString() || '0') +
-          parseFloat(t.payments?.onlineEFTs?.toString() || '0') +
-          parseFloat(t.payments?.vouchers?.toString() || '0') +
-          parseFloat(t.payments?.members?.toString() || '0') +
-          parseFloat(t.payments?.agentsToInvoice?.toString() || '0') +
-      parseFloat(t.payments?.waterPhoneSunblock?.toString() || '0') -
-          parseFloat(t.payments?.discountsTotal?.toString() || '0')
-        );
-        runningTotal += totalPayments;
+        const cashReceived = parseFloat(t.payments?.cashReceived?.toString() || '0');
+        runningTotal += cashReceived;
         const submittedTime = new Date(t.createdAt).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', hour12: false });
         body.push([
           new Date(t.tripDate).toISOString().slice(0,10),
@@ -268,7 +247,7 @@ export async function GET(req: NextRequest) {
           t.leadName,
           t.totalPax.toString(),
           `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
-          `R ${totalPayments.toFixed(2)}`,
+          `R ${cashReceived.toFixed(2)}`,
           `R ${runningTotal.toFixed(2)}`
         ]);
       }
@@ -317,26 +296,47 @@ export async function GET(req: NextRequest) {
   // Build Excel
   const { default: ExcelJS } = await import('exceljs');
   const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet('CashUps');
-  ws.columns = [
+
+  // Guide Summary Sheet
+  const guideSummaryWs = wb.addWorksheet('Guide Summary');
+  guideSummaryWs.columns = [
+    { header: 'Guide Name', key: 'name', width: 20 },
+    { header: 'Rank', key: 'rank', width: 15 },
+    { header: 'Trip Count', key: 'tripCount', width: 12 },
+    { header: 'Trip Leader Count', key: 'tripLeaderCount', width: 18 },
+    { header: 'Total Earnings', key: 'totalEarnings', width: 15 }
+  ];
+  for (const stats of Array.from(guideStats.values()).sort((a, b) => a.name.localeCompare(b.name))) {
+    guideSummaryWs.addRow({
+      name: stats.name,
+      rank: stats.rank,
+      tripCount: stats.tripCount,
+      tripLeaderCount: stats.tripLeaderCount,
+      totalEarnings: stats.totalEarnings
+    });
+  }
+
+  // Trip Details Sheet
+  const tripDetailsWs = wb.addWorksheet('Trip Details');
+  tripDetailsWs.columns = [
     { header: 'Trip Date', key: 'tripDate', width: 12 },
-    { header: 'Status', key: 'status', width: 12 },
     { header: 'Lead', key: 'leadName', width: 20 },
     { header: 'Total Pax', key: 'totalPax', width: 10 },
     { header: 'Guides (S/I/J counts)', key: 'guideCounts', width: 22 },
     { header: 'Guides (names)', key: 'guideNames', width: 36 },
-    { header: 'Cash', key: 'cash', width: 10 },
-    { header: 'Cards', key: 'cards', width: 10 },
-    { header: 'EFTs', key: 'efts', width: 10 },
-    { header: 'Vouchers', key: 'vouchers', width: 10 },
-    { header: 'Members', key: 'members', width: 10 },
-    { header: 'Agents', key: 'agents', width: 10 },
-    { header: 'Discounts', key: 'discounts', width: 12 }
+    { header: 'Cash Received', key: 'cash', width: 15 }
   ];
   for (const t of trips) {
     const names = t.guides.map((g: any)=>g.guide.name).join(', ');
     const counts = { SENIOR: t.guides.filter((g: any)=>g.guide.rank==='SENIOR').length, INTERMEDIATE: t.guides.filter((g: any)=>g.guide.rank==='INTERMEDIATE').length, JUNIOR: t.guides.filter((g: any)=>g.guide.rank==='JUNIOR').length };
-    ws.addRow({ tripDate: new Date(t.tripDate).toISOString().slice(0,10), status: t.status, leadName: t.leadName, totalPax: t.totalPax, guideCounts: `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`, guideNames: names, cash: t.payments?.cashReceived?.toString() || '0', cards: t.payments?.creditCards?.toString() || '0', efts: t.payments?.onlineEFTs?.toString() || '0', vouchers: t.payments?.vouchers?.toString() || '0', members: t.payments?.members?.toString() || '0', agents: t.payments?.agentsToInvoice?.toString() || '0', discounts: t.payments?.discountsTotal?.toString() || '0' });
+    tripDetailsWs.addRow({
+      tripDate: new Date(t.tripDate).toISOString().slice(0,10),
+      leadName: t.leadName,
+      totalPax: t.totalPax,
+      guideCounts: `S:${counts.SENIOR} I:${counts.INTERMEDIATE} J:${counts.JUNIOR}`,
+      guideNames: names,
+      cash: t.payments?.cashReceived?.toString() || '0'
+    });
   }
   const xlsBuf = await wb.xlsx.writeBuffer();
 

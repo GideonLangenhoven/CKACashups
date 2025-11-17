@@ -60,7 +60,8 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
       { text: `Pax Guide notes: ${(trip as any).paxGuideNote || ""}`, margin: [0, 6, 0, 10] },
       { text: "Guides", style: "subheader" },
       { ul: guideLines, margin: [0, 0, 0, 10] },
-      { text: "Payments", style: "subheader" },
+      { text: "Cash received", style: "subheader" },
+      { text: "including water, pouches and tips received", style: "caption", margin: [0, 0, 0, 6] },
       {
         table: {
           widths: ["*", "*"] as any,
@@ -92,6 +93,7 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
     styles: {
       header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
       subheader: { fontSize: 13, bold: true, margin: [0, 8, 0, 6] },
+      caption: { fontSize: 10, color: '#666666', italics: true },
     },
   } as any;
 
